@@ -2,7 +2,7 @@
 
 function ()
     if UnitCanAttack("player", "target") == false then return false end
-    if not WA_RedsBDKRota_Enabled or UnitOnTaxi("player") then
+    if not WA_Redfellas_Rot_BDK_Enabled or UnitOnTaxi("player") then
         return false
     end
 
@@ -34,7 +34,7 @@ function ()
     local cdLeft = aura_env.cdLeft
 
     local runic_power = UnitPower("player")
-    local health_percentage = ("%.0f"):format( ( UnitHealth("player") / UnitHealthMax("player") ) * 100 )
+    local health_percentage = math.ceil( (UnitHealth("player") / UnitHealthMax("player") * 100) )
     local missing_health_percentage = 100 - health_percentage
 
     for k,v in pairs( targets ) do
@@ -127,30 +127,25 @@ function ()
     if time_to_3_runes <= 3 then spend_runes = true end
 
     local rp_cap_warning = 75
-    if talented.ossuary then rp_cap_warning = 85 end
-    aura_env.bone_shield_danger = 0
+    if talented.ossuary then rp_cap_warning = 95 end
+    local bone_shield_aura = select(7,UnitBuff("player",GetSpellInfo(195181))) or 0
+    aura_env.bone_shield_danger = bone_shield_aura - GetTime()
 
     ---------------
     -- APL START --
     ---------------
 
-    -- refresh marrowrend if about to fall off
-    if buffRemains.bone_shield > 0 and buffRemains.bone_shield < 6 then
-        aura_env.bone_shield_danger = buffRemains.bone_shield
-        if ready( 'marrowrend' ) and runes >= 2 then rec( 'marrowrend') end
-    end
+    -- marrowrend is about to fall off, refresh
+    if ready( 'marrowrend' ) and aura_env.bone_shield_danger > 0 and aura_env.bone_shield_danger < 6 and runes >= 2 then rec( 'marrowrend') end
 
     -- below danger treshold
-    if WA_RedsBDKRota_CDs and missing_health_percentage >= danger_treshold then
+    if WA_Redfellas_Rot_BDK_CDs and missing_health_percentage >= danger_treshold then
         -- really low hp, skip banking and just VE
         if ready( 'vampiric_blood' ) and missing_health_percentage >= 80 then rec( 'vampiric_blood' ) end
-
         -- heal with DS if VE is on cooldown, otherwise we bank for 2 DS for VE > DS > DS combo
         if ready( 'death_strike' ) and missing_health_percentage >= danger_treshold and cooldowns.vampiric_blood > 0 then rec( 'death_strike' ) end
-
         -- VE if we have enough RP for two DS
-        if ready( 'vampiric_blåood' ) and two_ds_usable then rec( 'vampiric_blood' ) end
-
+        if ready( 'vampiric_blood' ) and two_ds_usable then rec( 'vampiric_blood' ) end
         -- heal with DS if VE active
         if ready( 'death_strike' ) and ds_usable and buffRemains.vampiric_blood > 0 then rec( 'death_strike' ) end
     else
@@ -160,26 +155,19 @@ function ()
 
     -- above danger treshold, heal with DS if the heal won't overheal
     if ready( 'death_strike' ) and missing_health_percentage < danger_treshold and missing_health_percentage >= ds_heal then rec( 'death_strike' ) end
-
     -- activate DRW if under 50% HP, RP starved and no VE
-    if WA_RedsBDKRota_CDs and ready( 'dancing_rune_weapon' ) and not ds_usable and cooldowns.vampiric_blood > 0 and missing_health_percentage >= 50 then rec( 'dancing_rune_weapon' ) end
-
+    if WA_Redfellas_Rot_BDK_CDs and ready( 'dancing_rune_weapon' ) and not ds_usable and cooldowns.vampiric_blood > 0 and missing_health_percentage >= 50 then rec( 'dancing_rune_weapon' ) end
     -- tag the enemy with bp
     if ready( 'blood_boil' ) and charges.blood_boil >= 0 and debuffRemains.blood_plague == 0 then rec( 'blood_boil' ) end
-
     -- DRW for bone shield stacks, usually this happens on pull after first BB
-    if WA_RedsBDKRota_CDs and ready( 'dancing_rune_weapon' ) and bone_shield_stacks <= 6 and runes >= 4 then rec( 'dancing_rune_weapon' ) end
-
+    if WA_Redfellas_Rot_BDK_CDs and ready( 'dancing_rune_weapon' ) and bone_shield_stacks <= 6 and runes >= 4 then rec( 'dancing_rune_weapon' ) end
     -- dnd on cd when using RD or if crimson scourge procs, or if more than 1 target
     if ready( 'death_and_decay' ) and (talented.rapid_decomposition or buffRemains.crimson_scourge >= 0 or targets > 1) then rec( 'death_and_decay' ) end
-
     -- marrowrend if missing bone shield
     -- marrowrend if DRW active and missing lots of bone shield stacks to build up fast
     if ready( 'marrowrend' ) and (bone_shield_stacks == 0 and runes >= 2) or (buffRemains.dancing_rune_weapon > 0 and bone_shield_stacks <= 4) then rec( 'marrowrend') end
-
     -- spend bb if 1.5 charges aka around 3 seconds to cap cahrges
     if ready( 'blood_boil' ) and chargeCt( 'blood_boil' ) >= 1.6 then rec( 'blood_boil' ) end
-
     -- death strike for dps if too much rp
     if ready( 'death_strike' ) and runic_power >= rp_cap_warning then rec( 'death_strike' ) end
 
@@ -187,14 +175,11 @@ function ()
     if talented.rapid_decomposition and buffRemains.death_and_decay > 0 then
         -- marrowrend if at six or less bone shield stacks
         if ready( 'marrowrend' ) and bone_shield_stacks <= 4 and spend_runes then rec( 'marrowrend') end
-
         -- heart strike if good on bone shield
         if ready( 'heart_strike' ) and bone_shield_stacks > 4 and spend_runes then rec( 'heart_strike') end
-
     else
         -- marrowrend if at six or less bone shield stacks
         if ready( 'marrowrend' ) and bone_shield_stacks <= 6 and spend_runes then rec( 'marrowrend') end
-
         -- heart strike if good on bone shield
         if ready( 'heart_strike' ) and bone_shield_stacks >= 7 and spend_runes then rec( 'heart_strike') end
     end
@@ -228,7 +213,6 @@ function ()
         WeakAuras.regions[aura_env.id].region.cooldown:SetCooldown(0,0)
         WeakAuras.regions[aura_env.id].region:Color(1,1,1,1)
     end
-
 
     return true
 end
