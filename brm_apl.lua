@@ -114,13 +114,11 @@ function ()
         -- purify excessive stagger dot
         if ready ('purifying_brew' ) and stagger_percentage >= aura_env.purify_treshold then rec( 'purifying_brew' ) end
 
-        -- tanking, use isbs and save 1.8 charges for purify / am
-        if ready( 'ironskin_brew' ) and missing_health_percentage > 5 and energy < 100 and chargeCt( 'ironskin_brew' ) > 1.8 then rec( 'ironskin_brew' ) end
+        -- tanking, use isbs and save 2 charges for purify + am combo
+        if ready( 'ironskin_brew' ) and stagger_percentage >= 5 and chargeCt( 'ironskin_brew' ) > 2 then rec( 'ironskin_brew' ) end
 
-        -- dpsing, use isb for damage (class trinket)
-        if IsEquippedItem(124517) then
-            if ready( 'ironskin_brew' ) and missing_health_percentage < 5 and energy < 100 and chargeCt( 'ironskin_brew' ) > 2.5 then rec( 'ironskin_brew' ) end
-        end
+        -- use brews for damage if using class trinket and not tanking
+        if ready( 'ironskin_brew' ) and stagger_percentage < 5 and IsEquippedItem(124517) and chargeCt( 'ironskin_brew' ) > 2.5 then rec( 'ironskin_brew' ) end
     end
 
     -- if not using blackout combo
@@ -143,7 +141,7 @@ function ()
     -- if using blackout combo
     if talented.blackout_combo == true then
         -- try to generate as many brews as possible when staggering damage or using class trinket (dps buff)
-        if stagger_percentage > 10 or IsEquippedItem(124517) then
+        if stagger_percentage > 5 or IsEquippedItem(124517) then
             if ready( 'keg_smash' ) and energy == 100 then rec( 'keg_smash' ) end
 
             if ready( 'tiger_palm' ) and energy > 90 and energy < 100 then rec( 'tiger_palm' ) end
