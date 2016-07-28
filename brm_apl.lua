@@ -1,5 +1,4 @@
 -- UNIT_POWER_FREQUENT, SPELL_UPDATE_COOLDOWN, SPELL_UPDATE_CHARGES, PLAYER_TARGET_CHANGED, UNIT_SPELLCAST_SUCCEEDED
-
 function ()
     if UnitCanAttack("player", "target") == false then return false end
     if not WA_Redfellas_Rot_BRM_Enabled or UnitOnTaxi("player") then
@@ -33,10 +32,13 @@ function ()
     local chargeCt = aura_env.chargeCt
     local cdLeft = aura_env.cdLeft
 
-    local health_percentage = ("%.0f"):format( ( UnitHealth("player") / UnitHealthMax("player") ) * 100 )
+    local health_percentage = math.ceil( (UnitHealth("player") / UnitHealthMax("player") * 100) )
     local missing_health_percentage = 100 - health_percentage
     local stagger_percentage = math.ceil( (UnitStagger("player") / UnitHealthMax("player") * 100) )
     local energy = UnitPower("player")
+    local purify_treshold = aura_env.purify_treshold
+    local class_trinket = IsEquippedItem(124517)
+    local goto_orbs = GetSpellCount(115072) or 0
 
     for k,v in pairs( targets ) do
         if now - v > aura_env.targetWipeInterval then
@@ -58,12 +60,6 @@ function ()
     for k,v in pairs( talentList ) do
         talented[ k ] = select(4, GetTalentInfo( unpack( v ) ) )
     end
-
-    -- Grab ability CDs. OLD, using Roll confuses this
-    --    for k,v in pairs( abilities ) do
-    --        local start, duration = GetSpellCooldown(v)
-    --        cooldowns[ k ] = IsUsableSpell(v) and max( 0, start + duration - now ) or 999
-    --    end
 
     -- Grab ability CDs.
     for k,v in pairs( abilities ) do
@@ -110,73 +106,93 @@ function ()
     local rec = aura_env.rec
     local ready = aura_env.ready
 
+
+    -- Cooldown usage toggled on
     if WA_Redfellas_Rot_BRM_CDs then
-        -- purify excessive stagger dot
-        if ready ('purifying_brew' ) and stagger_percentage >= aura_env.purify_treshold then rec( 'purifying_brew' ) end
-
-        -- tanking, use isbs and save 2 charges for purify + am combo
+        -- Purify if stagger exceeds purify_treshold (default: 60%)
+        if ready ('purifying_brew' ) and stagger_percentage >= purify_treshold then rec( 'purifying_brew' ) end
+        -- Ironskin Brew if: Actively tanking and more than 2 ISB charges
         if ready( 'ironskin_brew' ) and stagger_percentage >= 5 and chargeCt( 'ironskin_brew' ) > 2 then rec( 'ironskin_brew' ) end
-
-        -- use brews for damage if using class trinket and not tanking
-        if ready( 'ironskin_brew' ) and stagger_percentage < 5 and IsEquippedItem(124517) and chargeCt( 'ironskin_brew' ) > 2.5 then rec( 'ironskin_brew' ) end
+        -- Ironskin Brew if: Class trinket equipped while not tanking and more than 2.5 ISB charges
+        if ready( 'ironskin_brew' ) and stagger_percentage < 5 and class_trinket and chargeCt( 'ironskin_brew' ) > 2.5 then rec( 'ironskin_brew' ) end
+        -- Expel harm when HP dips
+        if ready( 'expel_harm' ) and health_percentage < 50 and energy >= 15 and goto_orbs >= 1 then rec( 'expel_harm' ) end
     end
 
-    -- if not using blackout combo
+    -- Talent not in use: Blackout Combo
     if talented.blackout_combo == false then
-
+        -- Keg Smash if it's ready
         if ready( 'keg_smash' ) then rec( 'keg_smash' ) end
-
+        -- Tiger palm if about to cap energy
         if ready( 'tiger_palm' ) and energy >= 90 then rec( 'tiger_palm' ) end
-
+        -- Blackout Strike if it's ready
         if ready( 'blackout_strike' ) then rec( 'blackout_strike' ) end
-
+        -- Breath of Fire if it's ready
         if ready( 'breath_of_fire' ) then rec( 'breath_of_fire' ) end
-
-        if ready( 'chi_burst' ) then rec( 'chi_burst' ) end
-
-        if ready( 'tiger_palm' ) and energy >= 58  then rec( 'tiger_palm' ) end
-
+        -- Chi Burst if it's talented and ready
+        if talented.chi_burst and ready( 'chi_burst' ) then rec( 'chi_burst' ) end
+        -- Chi Wave if it's talented and ready
+        if talented.chi_wave and ready( 'chi_wave' ) then rec( 'chi_wave' ) end
+        -- Tiger Palm if more than 58 Energy
+        if ready( 'tiger_palm' ) and energy >= 55  then rec( 'tiger_palm' ) end
     end
 
-    -- if using blackout combo
+    -- Talent in use: Blackout Combo
     if talented.blackout_combo == true then
-        -- try to generate as many brews as possible when staggering damage or using class trinket (dps buff)
-        if stagger_percentage > 5 or IsEquippedItem(124517) then
-            if ready( 'keg_smash' ) and energy == 100 then rec( 'keg_smash' ) end
-
-            if ready( 'tiger_palm' ) and energy > 90 and energy < 100 then rec( 'tiger_palm' ) end
-
-            if ready( 'blackout_strike' ) and ( cooldowns.keg_smash > 3 or ready( 'keg_smash') ) then rec( 'blackout_strike' ) end
-
-            if ready( 'keg_smash' ) and buffRemains.blackout_combo > 0 then rec( 'keg_smash' ) end
-
-            if ready( 'breath_of_fire' ) and buffRemains.blackout_combo > 0 then rec( 'breath_of_fire' ) end
-
-            if ready( 'chi_burst' ) and aura_env.targetCount > 1 then rec( 'chi_burst' ) end
-
-            if ready( 'tiger_palm' ) and buffRemains.blackout_combo > 0 and energy > 60 then rec( 'tiger_palm' ) end
-
-            if ready( 'tiger_palm' ) and energy > 65 then rec( 'tiger_palm' ) end
-
-            if ready( 'chi_burst' ) then rec( 'chi_burst' ) end
-            -- just dps when low stagger or no class trinket
-        else
-            if ready( 'keg_smash' ) then rec( 'keg_smash' ) end
-
-            if ready( 'tiger_palm' ) and  energy > 90 then rec( 'tiger_palm' ) end
-
+        -- Generate as many brews as possible actively tanking or using class trinket
+        if stagger_percentage >= 5 then
+            -- Blackout strike if it's ready
             if ready( 'blackout_strike' ) then rec( 'blackout_strike' ) end
 
-            if ready( 'breath_of_fire' ) then rec( 'breath_of_fire' ) end
-
-            -- difference to normal prio since bos tp can hurt a lot with somne luck
-            if ready( 'tiger_palm' ) and buffRemains.blackout_combo > 0 and energy > 50 then rec( 'tiger_palm' ) end
-
-            if ready( 'chi_burst' ) then rec( 'chi_burst' ) end
-
-            if ready( 'tiger_palm' ) and energy > 58 then rec( 'tiger_palm' ) end
+            -- If we have the Blackout Combo buff
+            if buffRemains.blackout_combo > 0 then
+                -- Always combo it with KS for Brew Generation
+                if ready( 'keg_smash' ) and buffRemains.blackout_combo > 0 then rec( 'keg_smash' ) end
+                -- BoF to reduce it's CD (Not optimal in Prepatch, but with the Artifact trait in Legion it will be)
+                if ready( 'breath_of_fire' ) and buffRemains.blackout_combo > 0 then rec( 'breath_of_fire' ) end
+                -- Combo with TP for -1s on brews and 200% dmg on TP
+                if ready( 'tiger_palm' ) and buffRemains.blackout_combo > 0 and energy > 60 then rec( 'tiger_palm' ) end
+            end
+            -- Weave in one non-blacked out ability between BoS > BoS buffed ability
+            if buffRemains.blackout_combo == 0 then
+                -- Spend some energy
+                if ready( 'tiger_palm' ) and energy >= 55 then rec( 'tiger_palm' ) end
+                -- Chi Burst if it's talented and ready
+                if talented.chi_burst and ready( 'chi_burst' ) then rec( 'chi_burst' ) end
+                -- Chi Wave if it's talented and ready
+                if talented.chi_wave and ready( 'chi_wave' ) then rec( 'chi_wave' ) end
+                -- We can recommend TP at as low at 45 because next ability will be Blackout Strike which will put us high enough for followup KS
+                if ready( 'tiger_palm' ) and energy > 45 then rec( 'tiger_palm' ) end
+            end
         end
 
+        -- Not tanking, prioritize DPS
+        if stagger_percentage < 5 then
+            -- Blackout strike if it's ready
+            if ready( 'blackout_strike' ) then rec( 'blackout_strike' ) end
+
+            -- If we have the Blackout Combo buff
+            if buffRemains.blackout_combo > 0 then
+              -- Always combo it with KS for Brew Generation, since with Class Trinket more brews equals more damage
+              if class_trinket and ready( 'keg_smash' ) and buffRemains.blackout_combo > 0 then rec( 'keg_smash' ) end
+              -- Combo with TP for -1s on brews and 200% dmg on TP, and hope for Face Palm procs
+              if ready( 'tiger_palm' ) and buffRemains.blackout_combo > 0 and energy > 60 then rec( 'tiger_palm' ) end
+            end
+            -- Weave in one non-blacked out ability between BoS > BoS buffed ability
+            if buffRemains.blackout_combo == 0 then
+                if not class_trinket and ready( 'keg_smash' ) then rec( 'keg_smash' ) end
+                -- Spend some energy
+                if ready( 'tiger_palm' ) and energy >= 55 then rec( 'tiger_palm' ) end
+                -- Breath of Fire if it's ready
+                if ready( 'breath_of_fire' ) then rec( 'breath_of_fire' ) end
+                -- Chi Burst if it's talented and ready
+                if talented.chi_burst and ready( 'chi_burst' ) then rec( 'chi_burst' ) end
+                -- Chi Wave if it's talented and ready
+                if talented.chi_wave and ready( 'chi_wave' ) then rec( 'chi_wave' ) end
+                -- We can recommend TP at as low at 45 because next ability will be Blackout Strike which will put us high enough for followup KS
+                if ready( 'tiger_palm' ) and energy > 45 then rec( 'tiger_palm' ) end
+            end
+        end
     end
 
 

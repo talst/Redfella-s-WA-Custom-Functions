@@ -59,6 +59,8 @@ aura_env.targetCount = 0
 
 aura_env.talents = {
     chi_burst = { 1, 1, 1 },
+    chi_wave = { 1, 3, 1 },
+    black_ox_brew = { 3, 2, 1 },
     blackout_combo = { 7, 2, 1 },
     hight_tolerance = { 7, 3, 1 }
 }
@@ -67,6 +69,7 @@ aura_env.talented = {}
 
 aura_env.abilities = {
     keg_smash = 121253,
+    expel_harm = 115072,
     blackout_strike = 205523,
     ironskin_brew = 115308,
     purifying_brew = 119582,
@@ -74,7 +77,8 @@ aura_env.abilities = {
     chi_burst = 123986,
     tiger_palm = 100780,
     roll = 109132,
-    tigers_lust = 116841
+    tigers_lust = 116841,
+    black_ox_brew = 115399
 }
 
 aura_env.chargedAbilities = {
