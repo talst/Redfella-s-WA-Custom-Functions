@@ -3,7 +3,8 @@ aura_env.lastUpdate = GetTime()
 aura_env.targetWipeInterval = 5
 
 -- danger measures (hp %): build up to 2x DS and do VE > DS > DS or DRW if VE down and no RP
-aura_env.danger_treshold = 50
+aura_env.danger_treshold = 55
+aura_env.critical_treshold = 25
 
 aura_env.enabledToggle = "ALT-SHIFT-T"
 aura_env.cooldownsToggle = "ALT-SHIFT-R"
