@@ -139,7 +139,7 @@ function ()
 
     -- Talent in use: Blackout Combo
     if talented.blackout_combo == true then
-        -- Generate as many brews as possible actively tanking or using class trinket
+        -- Generate as many brews as possible when actively tanking or using class trinket
         if stagger_percentage >= 5 then
             -- Blackout strike if it's ready
             if ready( 'blackout_strike' ) then rec( 'blackout_strike' ) end
