@@ -168,6 +168,8 @@ function ()
 
         -- Not tanking, prioritize DPS
         if stagger_percentage < 5 then
+            -- Ks #1 prio if not using Class Trinket
+            if not class_trinket and ready( 'keg_smash' ) then rec( 'keg_smash' ) end
             -- Blackout strike if it's ready
             if ready( 'blackout_strike' ) then rec( 'blackout_strike' ) end
 
@@ -180,7 +182,6 @@ function ()
             end
             -- Weave in one non-blacked out ability between BoS > BoS buffed ability
             if buffRemains.blackout_combo == 0 then
-                if not class_trinket and ready( 'keg_smash' ) then rec( 'keg_smash' ) end
                 -- Spend some energy
                 if ready( 'tiger_palm' ) and energy >= 55 then rec( 'tiger_palm' ) end
                 -- Breath of Fire if it's ready
