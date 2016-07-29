@@ -7,10 +7,12 @@ aura_env.danger_treshold = 55
 aura_env.critical_treshold = 25
 
 aura_env.enabledToggle = "ALT-SHIFT-T"
-aura_env.cooldownsToggle = "ALT-SHIFT-R"
+aura_env.offCooldownsToggle = "ALT-SHIFT-R"
+aura_env.defCooldownsToggle = "ALT-SHIFT-E"
 
 WA_Redfellas_Rot_BDK_Enabled = WeakAurasSaved.displays[aura_env.id].hekiliEnabled == nil and true or WeakAurasSaved.displays[aura_env.id].hekiliEnabled
-WA_Redfellas_Rot_BDK_CDs = WeakAurasSaved.displays[aura_env.id].hekiliCooldowns == nil and false or WeakAurasSaved.displays[aura_env.id].hekiliCooldowns
+WA_Redfellas_Rot_BDK_Off_CDs = WeakAurasSaved.displays[aura_env.id].hekiliCooldownsOff == nil and false or WeakAurasSaved.displays[aura_env.id].hekiliCooldownsOff
+WA_Redfellas_Rot_BDK_Def_CDs = WeakAurasSaved.displays[aura_env.id].hekiliCooldownsDef == nil and false or WeakAurasSaved.displays[aura_env.id].hekiliCooldownsDef
 
 aura_env.bindsInitialized = false
 
@@ -18,16 +20,20 @@ aura_env.keyhandler = aura_env.keyhandler or CreateFrame("Button", aura_env.id..
 aura_env.keyhandler.parent = aura_env
 aura_env.keyhandler:RegisterForClicks("AnyDown")
 aura_env.keyhandler:SetScript("OnClick", function (self, button, down)
-        if button == "Cooldowns" then
-            WA_Redfellas_Rot_BDK_CDs = not WA_Redfellas_Rot_BDK_CDs
-            print("|cFF00FFFFRedfella's Rotation Helper Cooldowns: " .. ( WA_Redfellas_Rot_BDK_CDs and "|cFF00FF00ENABLED|r" or "|cFFFF0000DISABLED|r" ) )
+        if button == "defCooldowns" then
+            WA_Redfellas_Rot_BDK_Def_CDs = not WA_Redfellas_Rot_BDK_Def_CDs
+            print("|cFF00FFFFRedfella's Rotation Helper Defensive Cooldowns: " .. ( WA_Redfellas_Rot_BDK_Def_CDs and "|cFF00FF00ENABLED|r" or "|cFFFF0000DISABLED|r" ) )
         elseif button == "Enabled" then
             WA_Redfellas_Rot_BDK_Enabled = not WA_Redfellas_Rot_BDK_Enabled
             print("|cFF00FFFFRedfella's Rotation Helper: " .. ( WA_Redfellas_Rot_BDK_Enabled and "|cFF00FF00ENABLED|r" or "|cFFFF0000DISABLED|r" ) )
+        elseif button == "offCooldowns" then
+            WA_Redfellas_Rot_BDK_Off_CDs = not WA_Redfellas_Rot_BDK_Off_CDs
+            print("|cFF00FFFFRedfella's Rotation Offensive Helper: " .. ( WA_Redfellas_Rot_BDK_Off_CDs and "|cFF00FF00ENABLED|r" or "|cFFFF0000DISABLED|r" ) )
         end
 
         WeakAurasSaved.displays[self.parent.id].hekiliEnabled = WA_Redfellas_Rot_BDK_Enabled
-        WeakAurasSaved.displays[self.parent.id].hekiliCooldowns = WA_Redfellas_Rot_BDK_CDs
+        WeakAurasSaved.displays[self.parent.id].hekiliCooldownsOff = WA_Redfellas_Rot_BDK_Off_CDs
+        WeakAurasSaved.displays[self.parent.id].hekiliCooldownsDef = WA_Redfellas_Rot_BDK_Def_CDs
 end)
 
 function aura_env.setupBinds()
@@ -36,12 +42,14 @@ function aura_env.setupBinds()
 
     ClearOverrideBindings( aura_env.keyhandler )
     SetOverrideBindingClick( aura_env.keyhandler, true, aura_env.enabledToggle, aura_env.id.."_Keyhandler", "Enabled" )
-    SetOverrideBindingClick( aura_env.keyhandler, true, aura_env.cooldownsToggle, aura_env.id.."_Keyhandler", "Cooldowns" )
+    SetOverrideBindingClick( aura_env.keyhandler, true, aura_env.offCooldownsToggle, aura_env.id.."_Keyhandler", "offCooldowns" )
+    SetOverrideBindingClick( aura_env.keyhandler, true, aura_env.defCooldownsToggle, aura_env.id.."_Keyhandler", "defCooldowns" )
 
     print("|cFF00FFFFRedfella's Rotation Helper|r:  Keybinds are now active.")
     print("Enable/Disable - |cFFFFD100" .. aura_env.enabledToggle .. "|r.")
-    print("Toggle Cooldowns - |cFFFFD100" .. aura_env.cooldownsToggle .. "|r.")
-    print("You can *carefully* change these keybinds in the " .. aura_env.id .. " WeakAura on the Actions Tab, On Init, Expand Text Editor and see lines 9 and 10." )
+    print("Toggle Defensive Cooldowns - |cFFFFD100" .. aura_env.defCooldownsToggle .. "|r.")
+    print("Toggle Offensive Cooldowns - |cFFFFD100" .. aura_env.offCooldownsToggle .. "|r.")
+    print("You can *carefully* change these keybinds in the " .. aura_env.id .. " WeakAura on the Actions Tab, On Init, Expand Text Editor and see lines 11 to 13." )
 
     aura_env.bindsInitialized = true
 
