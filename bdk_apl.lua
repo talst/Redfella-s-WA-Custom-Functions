@@ -142,7 +142,7 @@ function ()
     if ready( 'marrowrend' ) and aura_env.bone_shield_danger > 0 and aura_env.bone_shield_danger < 6 and runes >= 2 then rec( 'marrowrend') end
 
     -- Cooldowns Enabled: below danger treshold (default: 55%)
-    if WA_Redfellas_Rot_BRM_Def_CDs and health_percentage <= danger_treshold then
+    if WA_Redfellas_Rot_BDK_Def_CDs and health_percentage <= danger_treshold then
         -- Vampiric Embrace if: player is below critical treshold  --OR--  RP for two Death Strikes
         if ready( 'vampiric_blood' ) and health_percentage <= critical_treshold or two_death_strikes_available then rec( 'vampiric_blood' ) end
         -- Death Strike if: VE is active  --OR--  VE is on cooldown
@@ -152,7 +152,7 @@ function ()
     end
 
     -- Cooldowns Disabled: below danger treshold (default: 55%)
-    if not WA_Redfellas_Rot_BRM_Def_CDs and health_percentage <= danger_treshold then
+    if not WA_Redfellas_Rot_BDK_Def_CDs and health_percentage <= danger_treshold then
         -- Death Strike
         if ready( 'death_strike' ) and death_strike_available then rec( 'death_strike' ) end
     end
@@ -164,7 +164,7 @@ function ()
     -- Apply blood plague
     if ready( 'blood_boil' ) and charges.blood_boil >= 0 and debuffRemains.blood_plague == 0 then rec( 'blood_boil' ) end
     -- Cooldowns Enabled: Dancing Rune Weapon if: Low on Bone Shield Stacks
-    if WA_Redfellas_Rot_BRM_Off_CDs and ready( 'dancing_rune_weapon' ) and bone_shield_stacks <= 6 and runes >= 4 then rec( 'dancing_rune_weapon' ) end
+    if WA_Redfellas_Rot_BDK_Off_CDs and ready( 'dancing_rune_weapon' ) and bone_shield_stacks <= 6 and runes >= 4 then rec( 'dancing_rune_weapon' ) end
     -- Death and Decay on CD if: using Rapid Decomposition talent  -- OR --  Crimson Scourge Procs  -- OR --  fighting more than one target
     if ready( 'death_and_decay' ) and (talented.rapid_decomposition or buffRemains.crimson_scourge >= 0 or targets > 1) then rec( 'death_and_decay' ) end
     -- Marrowrend if: missing Bone Shield   -- OR --  DRW active and at four or less Bone Shield stacks
@@ -172,7 +172,7 @@ function ()
     -- Blood Boil if: over 1.6 charges available
     if ready( 'blood_boil' ) and chargeCt( 'blood_boil' ) >= 1.6 then rec( 'blood_boil' ) end
     -- Death Strike if: about to cap Runic Power
-    if ready( 'death_strike' ) and ds_usable and runic_power >= rp_cap_warning then rec( 'death_strike' ) end
+    if ready( 'death_strike' ) and death_strike_available and runic_power >= rp_cap_warning then rec( 'death_strike' ) end
 
     -- if: Talented Rapid Decomposition
     if talented.rapid_decomposition and buffRemains.death_and_decay > 0 then
