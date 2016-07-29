@@ -106,19 +106,6 @@ function ()
     local rec = aura_env.rec
     local ready = aura_env.ready
 
-
-    -- Cooldown usage toggled on
-    if WA_Redfellas_Rot_BRM_CDs then
-        -- Purify if stagger exceeds purify_treshold (default: 60%)
-        if ready ('purifying_brew' ) and stagger_percentage >= purify_treshold then rec( 'purifying_brew' ) end
-        -- Ironskin Brew if: Actively tanking and more than 2 ISB charges
-        if ready( 'ironskin_brew' ) and stagger_percentage >= 5 and chargeCt( 'ironskin_brew' ) > 2 then rec( 'ironskin_brew' ) end
-        -- Ironskin Brew if: Class trinket equipped while not tanking and more than 2.5 ISB charges
-        if ready( 'ironskin_brew' ) and stagger_percentage < 5 and class_trinket and chargeCt( 'ironskin_brew' ) > 2.5 then rec( 'ironskin_brew' ) end
-        -- Expel harm when HP dips
-        if ready( 'expel_harm' ) and health_percentage < 50 and energy >= 15 and goto_orbs >= 1 then rec( 'expel_harm' ) end
-    end
-
     -- Talent not in use: Blackout Combo
     if talented.blackout_combo == false then
         -- Keg Smash if it's ready

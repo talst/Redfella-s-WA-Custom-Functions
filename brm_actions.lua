@@ -101,7 +101,7 @@ aura_env.charges = {}
 aura_env.chargeTime = {}
 aura_env.chargesMax = {}
 
-aura_env.buffs = {    
+aura_env.buffs = {
     ironskin_brew = 215479,
     elusive_brawler = 218825,
     blackout_combo = 228563,
