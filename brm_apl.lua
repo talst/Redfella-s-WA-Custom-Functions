@@ -34,7 +34,7 @@ function ()
 
     local health_percentage = math.ceil( (UnitHealth("player") / UnitHealthMax("player") * 100) )
     local missing_health_percentage = 100 - health_percentage
-    local stagger_percentage = math.ceil( (UnitStagger("player") / UnitHealthMax("player") * 100) )
+    local stagger_percentage = math.ceil( ((UnitStagger("player") or 0) / UnitHealthMax("player") * 100) )
     local energy = UnitPower("player")
     local purify_treshold = aura_env.purify_treshold
     local class_trinket = IsEquippedItem(124517)
@@ -54,7 +54,9 @@ function ()
     now = max( now, gcd )
 
     -- if the GCD isn't active, calculate what the GCD should be.
-    gcdDuration = 1
+    if gcdDuration == 0 then
+        gcdDuration = max( 1, 1.5 / ( 1 + ( GetHaste() / 100 ) ) )
+    end
 
     -- Get active talents.
     for k,v in pairs( talentList ) do
@@ -106,12 +108,19 @@ function ()
     local rec = aura_env.rec
     local ready = aura_env.ready
 
+    local wait_for_priority_abilities = false
+    if cooldowns.keg_smash < 0.75 or cooldowns.blackout_strike < 0.75 then
+        wait_for_priority_abilities = true
+    end
+
+    local tp_treshold = 55 --rp
+
     -- Talent not in use: Blackout Combo
     if talented.blackout_combo == false then
         -- Keg Smash if it's ready
         if ready( 'keg_smash' ) then rec( 'keg_smash' ) end
         -- Tiger palm if about to cap energy
-        if ready( 'tiger_palm' ) and energy >= 90 then rec( 'tiger_palm' ) end
+        -- if ready( 'tiger_palm' ) and energy >= 90 then rec( 'tiger_palm' ) end
         -- Blackout Strike if it's ready
         if ready( 'blackout_strike' ) then rec( 'blackout_strike' ) end
         -- Breath of Fire if it's ready
@@ -121,7 +130,7 @@ function ()
         -- Chi Wave if it's talented and ready
         if talented.chi_wave and ready( 'chi_wave' ) then rec( 'chi_wave' ) end
         -- Tiger Palm if more than 58 Energy
-        if ready( 'tiger_palm' ) and energy >= 55  then rec( 'tiger_palm' ) end
+        if ready( 'tiger_palm' ) and energy >= tp_treshold and not wait_for_priority_abilities then rec( 'tiger_palm' ) end
     end
 
     -- Talent in use: Blackout Combo
@@ -143,13 +152,13 @@ function ()
             -- Weave in one non-blacked out ability between BoS > BoS buffed ability
             if buffRemains.blackout_combo == 0 then
                 -- Spend some energy
-                if ready( 'tiger_palm' ) and energy >= 55 then rec( 'tiger_palm' ) end
+                -- if ready( 'tiger_palm' ) and energy >= tp_treshold then rec( 'tiger_palm' ) end
                 -- Chi Burst if it's talented and ready
                 if talented.chi_burst and ready( 'chi_burst' ) then rec( 'chi_burst' ) end
                 -- Chi Wave if it's talented and ready
                 if talented.chi_wave and ready( 'chi_wave' ) then rec( 'chi_wave' ) end
                 -- We can recommend TP at as low at 45 because next ability will be Blackout Strike which will put us high enough for followup KS
-                if ready( 'tiger_palm' ) and energy > 45 then rec( 'tiger_palm' ) end
+                if ready( 'tiger_palm' ) and not wait_for_priority_abilities and energy > tp_treshold and not wait_for_priority_abilities then rec( 'tiger_palm' ) end
             end
         end
 
@@ -165,12 +174,12 @@ function ()
               -- Always combo it with KS for Brew Generation, since with Class Trinket more brews equals more damage
               if class_trinket and ready( 'keg_smash' ) and buffRemains.blackout_combo > 0 then rec( 'keg_smash' ) end
               -- Combo with TP for -1s on brews and 200% dmg on TP, and hope for Face Palm procs
-              if ready( 'tiger_palm' ) and buffRemains.blackout_combo > 0 and energy > 60 then rec( 'tiger_palm' ) end
+              if ready( 'tiger_palm' ) and not wait_for_priority_abilities and buffRemains.blackout_combo > 0 and energy > 60 then rec( 'tiger_palm' ) end
             end
             -- Weave in one non-blacked out ability between BoS > BoS buffed ability
             if buffRemains.blackout_combo == 0 then
                 -- Spend some energy
-                if ready( 'tiger_palm' ) and energy >= 55 then rec( 'tiger_palm' ) end
+                -- if ready( 'tiger_palm' ) and energy >= tp_treshold then rec( 'tiger_palm' ) end
                 -- Breath of Fire if it's ready
                 if ready( 'breath_of_fire' ) then rec( 'breath_of_fire' ) end
                 -- Chi Burst if it's talented and ready
@@ -178,7 +187,7 @@ function ()
                 -- Chi Wave if it's talented and ready
                 if talented.chi_wave and ready( 'chi_wave' ) then rec( 'chi_wave' ) end
                 -- We can recommend TP at as low at 45 because next ability will be Blackout Strike which will put us high enough for followup KS
-                if ready( 'tiger_palm' ) and energy > 45 then rec( 'tiger_palm' ) end
+                if ready( 'tiger_palm' ) and energy > tp_treshold and not wait_for_priority_abilities then rec( 'tiger_palm' ) end
             end
         end
     end
