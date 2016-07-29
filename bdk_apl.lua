@@ -142,13 +142,10 @@ function ()
     -- Cooldowns Enabled: below danger treshold (default: 55%)
     if WA_Redfellas_Rot_BDK_CDs and health_percentage <= danger_treshold then
         -- Vampiric Embrace if: player is below critical treshold  --OR--  RP for two Death Strikes
-        print("DANGER TRESHOLD: VE", health_percentage, critical_treshold, two_death_strikes_available)
         if ready( 'vampiric_blood' ) and health_percentage <= critical_treshold or two_death_strikes_available then rec( 'vampiric_blood' ) end
         -- Death Strike if: VE is active  --OR--  VE is on cooldown
-        print("DANGER TRESHOLD: DS")
         if ready( 'death_strike' ) and death_strike_available and (buffRemains.vampiric_blood > 0 or cooldowns.vampiric_blood > 0) then rec( 'death_strike' ) end
         -- Dancing Rune Weapon if: we can't Death Strike or VE, and VE isn't active
-        print("DANGER TRESHOLD: DRW")
         if ready( 'dancing_rune_weapon' ) and not death_strike_available and cooldowns.vampiric_blood > 0 and buffRemains.vampiric_blood == 0 then rec( 'dancing_rune_weapon' ) end
     end
 
@@ -173,7 +170,7 @@ function ()
     -- Blood Boil if: over 1.6 charges available
     if ready( 'blood_boil' ) and chargeCt( 'blood_boil' ) >= 1.6 then rec( 'blood_boil' ) end
     -- Death Strike if: about to cap Runic Power
-    if ready( 'death_strike' ) and runic_power >= rp_cap_warning then rec( 'death_strike' ) end
+    if ready( 'death_strike' ) and ds_usable and runic_power >= rp_cap_warning then rec( 'death_strike' ) end
 
     -- if: Talented Rapid Decomposition
     if talented.rapid_decomposition and buffRemains.death_and_decay > 0 then
