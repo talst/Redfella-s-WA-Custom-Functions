@@ -51,7 +51,9 @@ function ()
     now = max( now, gcd )
 
     -- if the GCD isn't active, calculate what the GCD should be.
-    gcdDuration = 1
+    if gcdDuration == 0 then
+        gcdDuration = max( 1, 1.5 / ( 1 + ( GetHaste() / 100 ) ) )
+    end
 
     -- Get active talents.
     for k,v in pairs( talentList ) do
