@@ -15,7 +15,7 @@ function ()
     local health_percentage = math.ceil( (UnitHealth("player") / UnitHealthMax("player") * 100) )
     local missing_health_percentage = 100 - health_percentage
     local stagger_percentage = math.ceil( ((UnitStagger("player") or 0) / UnitHealthMax("player") * 100) )
-    local purify_treshold = 6
+    local purify_treshold = 60
     local energy = UnitPower("player")
     local class_trinket = IsEquippedItem(124517)
     local brew_charges, maxCharges, start, duration = GetSpellCharges(115308)
