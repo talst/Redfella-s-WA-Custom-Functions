@@ -154,10 +154,10 @@ function ()
     if ready( 'immolation_aura' ) then rec( 'immolation_aura' ) end
     -- Spirit Bomb if: target not affected by frailty and we have fragments
     if talented.spirit_bomb and ready( 'spirit_bomb' ) and debuffRemains.frailty == 0 and soul_fragments >= 1 then rec( 'spirit_bomb' ) end
-    -- Fracture if: talented and at pain softcap without needing healing
-    if talented.fracture and ready( 'fracture' ) and pain >= pain_cap then rec( 'fracture' ) end
-    -- Soul Cleave if: not talented fracture and at pain softcap without needing healing
-    if not talented.fracture and ready( 'soul_cleave' ) and pain >= pain_cap then rec( 'soul_cleave' ) end
+    -- Fracture if: single target, talented fracture and at pain softcap without needing healing
+    if aura_env.targetCount == 1 and talented.fracture and ready( 'fracture' ) and pain >= pain_cap then rec( 'fracture' ) end
+    -- Soul Cleave if: multitarget -- OR -- not talented fracture and at pain softcap without needing healing
+    if (not talented.fracture or aura_env.targetCount > 1) and ready( 'soul_cleave' ) and pain >= pain_cap then rec( 'soul_cleave' ) end
     -- Sigil of Flame if: fighting multiple targets
     if ready( 'sigil_of_flame' ) and aura_env.targetCount >= 2 then rec( 'sigil_of_flame' ) end
     -- Fel Eruption if: talented
