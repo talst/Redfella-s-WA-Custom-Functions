@@ -116,7 +116,7 @@ function ()
 
     -- Calculate time to soft-capping runes, we always, ALWAYS prefer to have three runes charging
     local time_to_3_runes = aura_env.time_to_x_runes(3)
-    if time_to_3_runes <= 3 then spend_runes = true end
+    if time_to_3_runes <= 3.5 then spend_runes = true end
 
     -- Set rp cap for when to Death Strike even if it overheals
     local rp_cap_warning = 80
