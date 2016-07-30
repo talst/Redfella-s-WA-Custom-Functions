@@ -2,9 +2,8 @@ aura_env.updateInterval = 0.03
 aura_env.lastUpdate = GetTime()
 aura_env.targetWipeInterval = 5
 
--- danger measures (hp %): build up to 2x DS and do VE > DS > DS or DRW if VE down and no RP
 aura_env.danger_treshold = 55
-aura_env.critical_treshold = 25
+aura_env.critical_treshold = 30
 
 if aura_env.in_combat == nil then aura_env.in_combat = false end
 
@@ -177,7 +176,8 @@ function aura_env.ready( spell )
 end
 
 function aura_env.soul_fragments()
-    return GetSpellCount(228477)
+    local soul_fragments = GetSpellCount(228477) or 0
+    return soul_fragments
 end
 
 function aura_env.health_percentage()
