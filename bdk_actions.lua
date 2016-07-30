@@ -187,39 +187,6 @@ function aura_env.runes_available()
     return readycount
 end
 
--- custom pairs() that iterates a table in a sorted oreder
-function aura_env.spairs(t, order)
-    -- collect the keys
-    local keys = {}
-    for k in pairs(t) do keys[#keys+1] = k end
-
-    -- if order function given, sort by it by passing the table and keys a, b,
-    -- otherwise just sort the keys
-    if order then
-        table.sort(keys, function(a,b) return order(t, a, b) end)
-    else
-        table.sort(keys)
-    end
-
-    -- return the iterator function
-    local i = 0
-    return function()
-        i = i + 1
-        if keys[i] then
-            return keys[i], t[keys[i]]
-        end
-    end
-end
-
-function aura_env.maxkey(initialtable)
-    local maxval = math.max(unpack(initialtable))
-    local inv={}
-    for k,v in pairs(initialtable) do
-      inv[v]=k
-    end
-    return inv[maxval]
-end
-
 function aura_env.time_to_x_runes(runes_required)
     if not runes_required then return 0 end
     -- #1 figure how many runes we have ready for use

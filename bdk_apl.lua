@@ -1,8 +1,7 @@
 -- UNIT_POWER_FREQUENT, SPELL_UPDATE_COOLDOWN, SPELL_UPDATE_CHARGES, PLAYER_TARGET_CHANGED, UNIT_SPELLCAST_SUCCEEDED
 
 function ()
-    if UnitCanAttack("player", "target") == false then return false end
-    if not WA_Redfellas_Rot_BDK_Enabled or UnitOnTaxi("player") then
+    if not WA_Redfellas_Rot_BDK_Enabled or UnitOnTaxi("player") or not UnitCanAttack("player", "target") then
         return false
     end
 
@@ -74,8 +73,6 @@ function ()
         chargesMax[ k ] = maxCharges
     end
 
-    aura_env.bb_charges = charges.blood_boil
-
     -- Check if buffs are up.
     for k,v in pairs( buffList ) do
         local _, _, _, _, _, _, expires = UnitBuff("player", buffNames[ v ] )
@@ -100,7 +97,6 @@ function ()
     aura_env.lastRec = aura_env.recommended
     aura_env.recommended = 0
     aura_env.timeToReady = 10
-
 
     -- for easy if / else APL'ing
     local spend_runes = false
