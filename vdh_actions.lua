@@ -113,7 +113,8 @@ aura_env.abilities = {
     metamorphosis = 187827,
     soul_carver = 207407,
     darkness = 196718,
-    fiery_brand = 204021
+    fiery_brand = 204021,
+    fracture = 209795
 }
 
 aura_env.chargedAbilities = {
@@ -141,7 +142,8 @@ aura_env.buffs = {
     demon_spikes = 203819,
     metamorphosis = 187827,
     immolation_aura = 178740,
-    soul_fragments = 203981
+    soul_fragments = 203981,
+    soul_barrier = 227225
 }
 
 aura_env.buffNames = {}
@@ -152,7 +154,9 @@ end
 
 aura_env.buffRemains = {}
 
-aura_env.debuffs = {}
+aura_env.debuffs = {
+    frailty = 224509
+}
 
 aura_env.debuffNames = {}
 

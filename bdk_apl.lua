@@ -162,7 +162,7 @@ function ()
     -- Cooldowns Enabled: Dancing Rune Weapon if: Low on Bone Shield Stacks
     if WA_Redfellas_Rot_BDK_Off_CDs and ready( 'dancing_rune_weapon' ) and bone_shield_stacks <= 6 and runes >= 4 then rec( 'dancing_rune_weapon' ) end
     -- Death and Decay on CD if: using Rapid Decomposition talent  -- OR --  Crimson Scourge Procs  -- OR --  fighting more than one target
-    if ready( 'death_and_decay' ) and (talented.rapid_decomposition or buffRemains.crimson_scourge >= 0 or targets > 1) then rec( 'death_and_decay' ) end
+    if ready( 'death_and_decay' ) and (talented.rapid_decomposition or buffRemains.crimson_scourge >= 0 or aura_env.targetCount > 1) then rec( 'death_and_decay' ) end
     -- Marrowrend if: missing Bone Shield   -- OR --  DRW active and at four or less Bone Shield stacks
     if ready( 'marrowrend' ) and (bone_shield_stacks == 0 and runes >= 2) or (buffRemains.dancing_rune_weapon > 0 and bone_shield_stacks <= 4 and runes >= 2) then rec( 'marrowrend') end
     -- Blood Boil if: over 1.6 charges available

@@ -1,14 +1,13 @@
+-- COMBAT_LOG_EVENT_UNFILTERED,PLAYER_REGEN_ENABLED,PLAYER_REGEN_DISABLED
 function ( event, _, subtype, _, sourceGUID, sourceName, _, _, destGUID, destName, destFlags, _, spellID, spellName, _, amount, interrupt, a, b, c, d, offhand, multistrike )
-    if not event == 'PLAYER_REGEN_ENABLED' then aura_env.in_combat = false end
-    if not event == 'PLAYER_REGEN_DISABLED' then aura_env.in_combat = true end
-
     -- Setup keybinds if not yet setup
-    if not aura_env.bindsInitialized and event == 'PLAYER_REGEN_ENABLED' then
-        aura_env.setupBinds()
+    if event == 'PLAYER_REGEN_ENABLED' then
+        if not aura_env.bindsInitialized then aura_env.setupBinds() end
+        aura_env.in_combat = false
+        return
     end
 
-    -- Hide if can't attack
-    if UnitCanAttack("player", "target") == false then return false end
+    if event == 'PLAYER_REGEN_DISABLED' then aura_env.in_combat = true end
 
     local me = UnitGUID("player")
 
@@ -19,7 +18,6 @@ function ( event, _, subtype, _, sourceGUID, sourceName, _, _, destGUID, destNam
     end
 
     local hostile = ( bit.band( destFlags, COMBATLOG_OBJECT_REACTION_FRIENDLY ) == 0 )
-
     local time = GetTime()
 
     -- If being melee'd, count as a target.

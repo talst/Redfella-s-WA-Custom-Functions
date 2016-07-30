@@ -110,28 +110,34 @@ function ()
     -- Set pain cap for when to Soul Cleave even if it overheals
     local pain_cap = 70
 
+    local wait_for_priority_abilities = false
+    if cooldowns.immolation_aura < 0.5 or (talented.felblade and cooldowns.felblade < 0.5) then
+        wait_for_priority_abilities = true
+    end
+
     ---------------
     -- APL START --
     ---------------
 
-    print("currently fighting against X targets:", targets)
-    
     if not in_combat and ready( 'sigil_of_flame' ) then rec( 'sigil_of_flame' ) end
     if not in_combat and ready( 'infernal_strike' ) then rec( 'infernal_strike' ) end
 
     if WA_Redfellas_Rot_VDH_Def_CDs then
         -- Soul Carver if: health is below 70% and 0 fragments
         if ready( 'soul_carver' ) and health_percentage <= 70 and soul_fragments == 0 then rec( 'soul_carver' ) end
-
         -- Fiery Brand if: health is below 65%
         if ready( 'fiery_brand' ) and health_percentage <= 65 then rec( 'fiery_brand' ) end
 
         if health_percentage <= danger_treshold then
-            -- Soul Cleave if: every time we can
+            -- Fel Devastation if: we can
+            if talented.fel_devastation and ready( 'fel_devastation' ) then rec( 'fel_devastation' ) end
+            -- Soul Barrier if: we can
+            if talented.soul_barrier and ready( 'soul_barrier' ) then rec( 'soul_barrier' ) end
+            -- Soul Cleave if: we can
             if ready( 'soul_cleave' ) then rec( 'soul_cleave' ) end
-            -- Meta if: health drops below 25%
-            if ready( 'metamorphosis' ) and health_percentage <= critical_treshold then rec( 'metamorphosis' ) end
-            -- Darkness if: health still below 25%
+            -- Meta if: health drops below 25% and we don't have soul barrier active
+            if ready( 'metamorphosis' ) and buffRemains.soul_barrier == 0 and health_percentage <= critical_treshold then rec( 'metamorphosis' ) end
+            -- Darkness if: health below 25%
             if ready( 'darkness' ) and health_percentage <= critical_treshold then rec( 'darkness' ) end
         end
 
@@ -139,27 +145,39 @@ function ()
         if ready( 'demon_spikes' ) and chargeCt('demon_spikes') >= 1.70 and health_percentage <= 90 then rec( 'demon_spikes' ) end
     end
 
-    -- Soul Cleave if: ready and over pain cap (default: 70)  -- OR --  Soul Cleave will not overheal
-    if ready( 'soul_cleave' ) and (pain >= pain_cap or soul_cleave_heal < missing_health_percentage) then rec( 'soul_cleave' ) end
+    -- Soul Cleave if: healing required, at 60 pain and it will not overheal
+    if ready( 'soul_cleave' ) and pain >= 60 and soul_cleave_heal < missing_health_percentage then rec( 'soul_cleave' ) end
 
-    -- Immolation Aura on CD
+    -- Immolation Aura if: not on CD
     if ready( 'immolation_aura' ) then rec( 'immolation_aura' ) end
 
-    if ready( 'sigil_of_flame' ) and targets >= 2 then rec( 'sigil_of_flame' ) end
+    -- Spirit Bomb if: target not affected by frailty and we have fragments
+    if talented.spirit_bomb and ready( 'spirit_bomb' ) and debuffRemains.frailty == 0 and soul_fragments >= 1 then rec( 'spirit_bomb' ) end
 
-    -- Felblade on CD unless it would cap RP
+    -- Fracture if: talented and at pain softcap without needing healing
+    if talented.fracture and ready( 'fracture' ) and pain >= pain_cap then rec( 'fracture' ) end
+
+    -- Soul Cleave if: not talented fracture and at pain softcap without needing healing
+    if not talented.fracture and ready( 'soul_cleave' ) and pain >= pain_cap then rec( 'soul_cleave' ) end
+
+    -- Sigil of Flame if: fighting multiple targets
+    if ready( 'sigil_of_flame' ) and aura_env.targetCount >= 2 then rec( 'sigil_of_flame' ) end
+
+    -- Fel Eruption if: talented
+    if talented.fel_eruption and ready( 'fel_eruption' ) then rec( 'fel_eruption' ) end
+
+    -- Felblade if: will not cap pain
     if talented.felblade and ready( 'felblade' ) and pain <= 75 then rec( 'felblade' ) end
 
-    -- infernal_strike if about to cap charges
+    -- Infernal_strike if: about to cap charges
     if ready( 'infernal_strike' ) and chargeCt('infernal_strike') >= 1.75 then rec( 'infernal_strike' ) end
 
-    -- infernal_strike if about to cap charges
-    if ready( 'shear' ) then rec( 'shear' ) end
+    -- Shear if: nothing else to do
+    if ready( 'shear' ) and not wait_for_priority_abilities then rec( 'shear' ) end
 
     ---------------
     -- APL END --
     ---------------
-
 
 
     if aura_env.timeToReady < 5 then
