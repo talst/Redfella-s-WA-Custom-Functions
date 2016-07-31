@@ -106,13 +106,17 @@ aura_env.abilities = {
     soul_cleave = 228477,
     immolation_aura = 178740,
     sigil_of_flame = 204596,
-    felblade = 213241,
     infernal_strike = 189110,
     demon_spikes = 203720,
     metamorphosis = 187827,
     soul_carver = 207407,
     darkness = 196718,
     fiery_brand = 204021,
+    fel_devastation = 212084,
+    soul_barrier = 227225,
+    spirit_bomb = 218679,
+    fel_eruption = 211881,
+    felblade = 213241,
     fracture = 209795
 }
 
