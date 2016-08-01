@@ -111,7 +111,8 @@ aura_env.abilities = {
     dancing_rune_weapon = 49028,
     vampiric_blood = 55233,
     blood_tap = 221699,
-    bonestorm = 194844
+    bonestorm = 194844,
+    consumption = 205223
 }
 
 aura_env.chargedAbilities = {
