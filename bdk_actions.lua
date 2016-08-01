@@ -110,7 +110,8 @@ aura_env.abilities = {
     heart_strike = 206930,
     dancing_rune_weapon = 49028,
     vampiric_blood = 55233,
-    blood_tap = 221699
+    blood_tap = 221699,
+    bonestorm = 194844
 }
 
 aura_env.chargedAbilities = {

@@ -109,6 +109,8 @@ function ()
     local bone_shield_stacks = aura_env.get_unit_aura_value(195181, 'count') or 0
     local death_strike_available = false
     local two_death_strikes_available = false
+    local artifact_weapon = IsEquippedItem(128402)
+    local consumption_heal = 99999999999999999 -- placeholder until the function is finished
 
     -- Easy booleans for how many death strikes we can pump out, we can actually do three with Ossuary but no need in this APL
     if (buffRemains.ossuary > 0 and runic_power >= 40) or runic_power >= 45 then death_strike_available = true end
@@ -121,6 +123,8 @@ function ()
     -- Set rp cap for when to Death Strike even if it overheals
     local rp_cap_warning = 80
     if talented.ossuary then rp_cap_warning = 90 end
+    local rp_high_cap = 110
+    if talented.ossuary then rp_high_cap = 120 end
 
     -- Grab the expiration of Bone Shield aura
     local bone_shield_aura = select(7,UnitBuff("player",GetSpellInfo(195181))) or 0
@@ -132,6 +136,7 @@ function ()
     -- APL START --
     ---------------
 
+    if not in_combat and ready( 'death_and_decay' ) then rec( 'death_and_decay' ) end
 
     -- DANGER TRESHOLD START
     -- Marrowrend if aura duration is less than 6 seconds
@@ -155,20 +160,23 @@ function ()
     -- DANGER TRESHOLD END
 
     -- REGULAR PLAY
-    -- Death Strike if: above danger treshold and DS will not overheal
-    if ready( 'death_strike' ) and health_percentage > danger_treshold and missing_health_percentage >= ds_heal then rec( 'death_strike' ) end
+    if artifact_weapon and WA_Redfellas_Rot_BDK_Def_CDs and  ready( 'consumption') and missing_health_percentage >= consumption_heal then rec( 'consumption' ) end
+    -- Death Strike if: heal when in safe zone if  DS will not overheal, but only if we're not banking for bonestorm
+    if (not talented.bonestorm or cooldowns.bonestorm > 0) and ready( 'death_strike' ) and health_percentage > danger_treshold and missing_health_percentage >= ds_heal then rec( 'death_strike' ) end
     -- Apply blood plague
     if ready( 'blood_boil' ) and charges.blood_boil >= 0 and debuffRemains.blood_plague == 0 then rec( 'blood_boil' ) end
-    -- Cooldowns Enabled: Dancing Rune Weapon if: Low on Bone Shield Stacks
-    if WA_Redfellas_Rot_BDK_Off_CDs and ready( 'dancing_rune_weapon' ) and bone_shield_stacks <= 6 and runes >= 4 then rec( 'dancing_rune_weapon' ) end
+    -- Bonestorm if: CD usage enabled, talented and need to dump RP
+    if WA_Redfellas_Rot_BDK_Off_CDs and talented.bonestorm and ready( 'bonestorm' ) and runic_power >= rp_high_cap then rec( 'bonestorm' ) end
     -- Death and Decay on CD if: using Rapid Decomposition talent  -- OR --  Crimson Scourge Procs  -- OR --  fighting more than one target
     if ready( 'death_and_decay' ) and (talented.rapid_decomposition or buffRemains.crimson_scourge >= 0 or aura_env.targetCount > 1) then rec( 'death_and_decay' ) end
+    -- Death Strike if: about to cap Runic Power and not using bonestorm  -- OR --  bonestorm is on cd
+    if (not talented.bonestorm or cooldowns.bonestorm > 0) and ready( 'death_strike' ) and death_strike_available and runic_power >= rp_cap_warning then rec( 'death_strike' ) end
+    -- Cooldowns Enabled: Dancing Rune Weapon if: Low on Bone Shield Stacks
+    if WA_Redfellas_Rot_BDK_Off_CDs and ready( 'dancing_rune_weapon' ) and bone_shield_stacks <= 6 and runes >= 4 then rec( 'dancing_rune_weapon' ) end
     -- Marrowrend if: missing Bone Shield   -- OR --  DRW active and at four or less Bone Shield stacks
     if ready( 'marrowrend' ) and (bone_shield_stacks == 0 and runes >= 2) or (buffRemains.dancing_rune_weapon > 0 and bone_shield_stacks <= 4 and runes >= 2) then rec( 'marrowrend') end
     -- Blood Boil if: over 1.6 charges available
     if ready( 'blood_boil' ) and chargeCt( 'blood_boil' ) >= 1.6 then rec( 'blood_boil' ) end
-    -- Death Strike if: about to cap Runic Power
-    if ready( 'death_strike' ) and death_strike_available and runic_power >= rp_cap_warning then rec( 'death_strike' ) end
 
     -- if: Talented Rapid Decomposition
     if talented.rapid_decomposition and buffRemains.death_and_decay > 0 then
