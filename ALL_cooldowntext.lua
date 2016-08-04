@@ -2,16 +2,13 @@ function()
     if aura_env.state then
         local start, duration
 
-        -- Cooldown Progress (Spell)
         if aura_env.state.trigger.event == 'Cooldown Progress (Spell)' then
            start, duration = GetSpellCooldown(aura_env.state.trigger.spellName)
         end
 
-        -- Cooldown Progress (Item)
         if aura_env.state.trigger.event == 'Cooldown Progress (Item)' then
             start, duration = GetItemCooldown(aura_env.state.trigger.itemName)
         end
-
 
         if start and duration then
             local cooldown = start + duration - GetTime()
