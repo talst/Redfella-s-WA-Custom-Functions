@@ -130,7 +130,7 @@ aura_env.cooldowns = {
     vampiric_blood = 55233,
     blood_boil = 50842,
     death_and_decay = 43265,
-    poo_tap = 221699
+    blood_tap = 221699
 }
 
 aura_env.charges = {}
