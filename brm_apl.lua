@@ -113,7 +113,11 @@ function ()
         wait_for_priority_abilities = true
     end
 
-    local tp_treshold = 55 --rp
+    -- Calculate where energy regen will get us to once keg smash comes off cooldown
+    local energy_regen = select(2, GetPowerRegen())
+    aura_env.tp_threshold = (energy + (timeleft * energy_regen)) - 25
+    tp_threshold = aura_env.tp_threshold
+
 
     -- Talent not in use: Blackout Combo
     if talented.blackout_combo == false then
@@ -125,12 +129,14 @@ function ()
         if ready( 'blackout_strike' ) then rec( 'blackout_strike' ) end
         -- Breath of Fire if it's ready
         if ready( 'breath_of_fire' ) then rec( 'breath_of_fire' ) end
+        -- RJW if it's talented and ready
+        if talented.rushing_jade_wind and ready( 'rushing_jade_wind' ) then rec( 'rushing_jade_wind') end
         -- Chi Burst if it's talented and ready
         if talented.chi_burst and ready( 'chi_burst' ) then rec( 'chi_burst' ) end
         -- Chi Wave if it's talented and ready
         if talented.chi_wave and ready( 'chi_wave' ) then rec( 'chi_wave' ) end
         -- Tiger Palm if more than 58 Energy
-        if ready( 'tiger_palm' ) and energy >= tp_treshold and not wait_for_priority_abilities then rec( 'tiger_palm' ) end
+        if ready( 'tiger_palm' ) and tp_threshold >= 40 and not wait_for_priority_abilities then rec( 'tiger_palm' ) end
     end
 
     -- Talent in use: Blackout Combo
@@ -152,13 +158,15 @@ function ()
             -- Weave in one non-blacked out ability between BoS > BoS buffed ability
             if buffRemains.blackout_combo == 0 then
                 -- Spend some energy
-                -- if ready( 'tiger_palm' ) and energy >= tp_treshold then rec( 'tiger_palm' ) end
+                -- if ready( 'tiger_palm' ) and tp_threshold >= 40 then rec( 'tiger_palm' ) end
+                -- RJW if it's talented and ready
+                if talented.rushing_jade_wind and ready( 'rushing_jade_wind' ) then rec( 'rushing_jade_wind') end
                 -- Chi Burst if it's talented and ready
                 if talented.chi_burst and ready( 'chi_burst' ) then rec( 'chi_burst' ) end
                 -- Chi Wave if it's talented and ready
                 if talented.chi_wave and ready( 'chi_wave' ) then rec( 'chi_wave' ) end
                 -- We can recommend TP at as low at 45 because next ability will be Blackout Strike which will put us high enough for followup KS
-                if ready( 'tiger_palm' ) and not wait_for_priority_abilities and energy > tp_treshold and not wait_for_priority_abilities then rec( 'tiger_palm' ) end
+                if ready( 'tiger_palm' ) and not wait_for_priority_abilities and energy > tp_threshold and not wait_for_priority_abilities then rec( 'tiger_palm' ) end
             end
         end
 
@@ -179,15 +187,17 @@ function ()
             -- Weave in one non-blacked out ability between BoS > BoS buffed ability
             if buffRemains.blackout_combo == 0 then
                 -- Spend some energy
-                -- if ready( 'tiger_palm' ) and energy >= tp_treshold then rec( 'tiger_palm' ) end
+                -- if ready( 'tiger_palm' ) and tp_threshold >= 40 then rec( 'tiger_palm' ) end
                 -- Breath of Fire if it's ready
                 if ready( 'breath_of_fire' ) then rec( 'breath_of_fire' ) end
+                -- RJW if it's talented and ready
+                if talented.rushing_jade_wind and ready( 'rushing_jade_wind' ) then rec( 'rushing_jade_wind') end
                 -- Chi Burst if it's talented and ready
                 if talented.chi_burst and ready( 'chi_burst' ) then rec( 'chi_burst' ) end
                 -- Chi Wave if it's talented and ready
                 if talented.chi_wave and ready( 'chi_wave' ) then rec( 'chi_wave' ) end
                 -- We can recommend TP at as low at 45 because next ability will be Blackout Strike which will put us high enough for followup KS
-                if ready( 'tiger_palm' ) and energy > tp_treshold and not wait_for_priority_abilities then rec( 'tiger_palm' ) end
+                if ready( 'tiger_palm' ) and energy > tp_threshold and not wait_for_priority_abilities then rec( 'tiger_palm' ) end
             end
         end
     end
