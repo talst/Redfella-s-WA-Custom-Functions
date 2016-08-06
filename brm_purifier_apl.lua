@@ -9,7 +9,6 @@ function ()
 
     function rec2(spell)
         aura_env.recommended_purifier = aura_env.abilities[ spell ]
-        print("recommending:", aura_env.recommended_purifier)
         return true
     end
 
@@ -31,7 +30,7 @@ function ()
     -- Cooldown usage toggled on
     if WA_Redfellas_Rot_BRM_CDs then
         -- Use black_ox_brew
-        if bob_ready == true and brew_charges == 0 and brew_cooldown > 5 then rec2( 'black_ox_brew' )
+        if bob_ready == true and brew_charges == 0 and brew_cooldown > 5 then rec = rec2( 'black_ox_brew' )
         -- Heal with EH if under 50
         elseif health_percentage < 50 and energy >= 15 and goto_orbs >= 1 then rec = rec2( 'expel_harm' )
         -- Purify if stagger exceeds purify_treshold (default: 60%)
