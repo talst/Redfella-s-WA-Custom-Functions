@@ -58,11 +58,33 @@ aura_env.targets = {}
 aura_env.targetCount = 0
 
 aura_env.talents = {
-    chi_burst = { 1, 1, 1 },
-    chi_wave = { 1, 3, 1 },
-    black_ox_brew = { 3, 2, 1 },
-    blackout_combo = { 7, 2, 1 },
-    hight_tolerance = { 7, 3, 1 }
+  chi_burst = { 1, 1, 1 },
+  eye_of_the_tiger = { 1, 2, 1 },
+  chi_wave = { 1, 3, 1 },
+
+  chi_torpedo = { 2, 1, 1 },
+  tigers_lust = { 2, 2, 1 },
+  celerity = { 2, 3, 1 },
+
+  light_brewing = { 3, 1, 1 },
+  black_ox_brew = { 3, 2, 1 },
+  gift_of_the_mists = { 3, 3, 1 },
+
+  ring_of_peace = { 4, 1, 1 },
+  sbos = { 4, 2, 1 },
+  leg_sweep = { 4, 3, 1 },
+
+  healing_elixir = { 5, 1, 1 },
+  diffuse_magic = { 5, 2, 1 },
+  dampen_harm = { 5, 3, 1 },
+
+  rushing_jade_wind = {6, 1, 1 },
+  intbo = { 6, 2, 1 },
+  special_delivery = { 6, 3, 1 },
+
+  elusive_dance = { 7, 1, 1 },
+  blackout_combo = { 7, 2, 1 },
+  high_tolerance = {7, 3, 1 }
 }
 
 aura_env.talented = {}
@@ -78,7 +100,8 @@ aura_env.abilities = {
     tiger_palm = 100780,
     roll = 109132,
     tigers_lust = 116841,
-    black_ox_brew = 115399
+    black_ox_brew = 115399,
+    rushing_jade_wind = 116847
 }
 
 aura_env.chargedAbilities = {
