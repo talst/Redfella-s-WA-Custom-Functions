@@ -9,6 +9,7 @@ function ()
 
     function rec2(spell)
         aura_env.recommended_purifier = aura_env.abilities[ spell ]
+        print("recommending:", aura_env.recommended_purifier)
         return true
     end
 
@@ -18,6 +19,9 @@ function ()
     local purify_treshold = 60
     local energy = UnitPower("player")
     local class_trinket = IsEquippedItem(124517)
+    local bob_start, bob_duration, bob_enabled = GetSpellCooldown(115399)
+    local bob_ready = bob_start + bob_duration - GetTime()
+    if bob_ready <= 0 then bob_ready = true else bob_ready = false end
     local brew_charges, maxCharges, start, duration = GetSpellCharges(115308)
     local brew_cooldown = start + duration - GetTime()
     local goto_orbs = GetSpellCount(115072) or 0
@@ -26,13 +30,15 @@ function ()
 
     -- Cooldown usage toggled on
     if WA_Redfellas_Rot_BRM_CDs then
+        -- Use black_ox_brew
+        if bob_ready == true and brew_charges == 0 and brew_cooldown > 5 then rec2( 'black_ox_brew' )
         -- Heal with EH if under 50
-        if health_percentage < 50 and energy >= 15 and goto_orbs >= 1 then rec = rec2( 'expel_harm' )
-            -- Purify if stagger exceeds purify_treshold (default: 60%)
+        elseif health_percentage < 50 and energy >= 15 and goto_orbs >= 1 then rec = rec2( 'expel_harm' )
+        -- Purify if stagger exceeds purify_treshold (default: 60%)
         elseif stagger_percentage >= purify_treshold and brew_charges >= 1 then rec = rec2( 'purifying_brew' )
-            -- Ironskin Brew if: Actively tanking and more than 2 ISB charges
+        -- Ironskin Brew if: Actively tanking and more than 2 ISB charges
         elseif stagger_percentage >= 5 and brew_charges >= 2 then rec = rec2( 'ironskin_brew' )
-            -- Ironskin Brew if: Class trinket equipped while not tanking and more than 2.5 ISB charges
+        -- Ironskin Brew if: Class trinket equipped while not tanking and more than 2.5 ISB charges
         elseif stagger_percentage < 5 and class_trinket and brew_charges >= 2 then rec = rec2( 'ironskin_brew' )
         end
     end
