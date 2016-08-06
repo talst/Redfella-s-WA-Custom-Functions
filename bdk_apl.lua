@@ -150,6 +150,12 @@ function ()
         if ready( 'death_strike' ) and death_strike_available and (buffRemains.vampiric_blood > 0 or cooldowns.vampiric_blood > 0) then rec( 'death_strike' ) end
         -- Dancing Rune Weapon if: we can't Death Strike or VE, and VE isn't active
         if ready( 'dancing_rune_weapon' ) and not death_strike_available and cooldowns.vampiric_blood > 0 and buffRemains.vampiric_blood == 0 then rec( 'dancing_rune_weapon' ) end
+        -- Prio RP generators when in danger
+        if ready( 'death_and_decay' ) and (talented.rapid_decomposition or buffRemains.crimson_scourge >= 0 or aura_env.targetCount > 1) then rec( 'death_and_decay' ) end
+        -- Marrowrend if: six or less Bone Shield stacks
+        if ready( 'marrowrend' ) and bone_shield_stacks <= 6 and spend_runes then rec( 'marrowrend') end
+        -- Heart Strike if: good one Bone Shield stacks
+        if ready( 'heart_strike' ) and bone_shield_stacks >= 7 and spend_runes then rec( 'heart_strike') end
     end
 
     -- Cooldowns Disabled: below danger treshold (default: 55%)
