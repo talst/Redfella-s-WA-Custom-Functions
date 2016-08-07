@@ -113,6 +113,10 @@ function ()
         wait_for_priority_abilities = true
     end
 
+    -- Get remaining time on Keg Smash (ignoring energy cost)
+    local start, duration = GetSpellCooldown(121253)
+    local timeleft = max(0, start + duration - now)
+
     -- Calculate where energy regen will get us to once keg smash comes off cooldown
     local energy_regen = select(2, GetPowerRegen())
     aura_env.tp_threshold = (energy + (timeleft * energy_regen)) - 25
@@ -124,7 +128,7 @@ function ()
         -- Keg Smash if it's ready
         if ready( 'keg_smash' ) then rec( 'keg_smash' ) end
         -- Tiger palm if about to cap energy
-        -- if ready( 'tiger_palm' ) and energy >= 90 then rec( 'tiger_palm' ) end
+        if ready( 'tiger_palm' ) and energy >= 90 then rec( 'tiger_palm' ) end
         -- Blackout Strike if it's ready
         if ready( 'blackout_strike' ) then rec( 'blackout_strike' ) end
         -- Breath of Fire if it's ready
@@ -136,7 +140,7 @@ function ()
         -- Chi Wave if it's talented and ready
         if talented.chi_wave and ready( 'chi_wave' ) then rec( 'chi_wave' ) end
         -- Tiger Palm if more than 58 Energy
-        if ready( 'tiger_palm' ) and tp_threshold >= 40 and not wait_for_priority_abilities then rec( 'tiger_palm' ) end
+        if ready( 'tiger_palm' ) and tp_threshold >= 40 then rec( 'tiger_palm' ) end
     end
 
     -- Talent in use: Blackout Combo
@@ -153,20 +157,20 @@ function ()
                 -- BoF to reduce it's CD (Not optimal in Prepatch, but with the Artifact trait in Legion it will be)
                 if ready( 'breath_of_fire' ) and buffRemains.blackout_combo > 0 then rec( 'breath_of_fire' ) end
                 -- Combo with TP for -1s on brews and 200% dmg on TP
-                if ready( 'tiger_palm' ) and buffRemains.blackout_combo > 0 and energy > 60 then rec( 'tiger_palm' ) end
+                if ready( 'tiger_palm' ) and buffRemains.blackout_combo > 0 and tp_threshold >= 40 then rec( 'tiger_palm' ) end
             end
             -- Weave in one non-blacked out ability between BoS > BoS buffed ability
             if buffRemains.blackout_combo == 0 then
-                -- Spend some energy
-                -- if ready( 'tiger_palm' ) and tp_threshold >= 40 then rec( 'tiger_palm' ) end
+                -- Tiger palm if about to cap energy
+                if ready( 'tiger_palm' ) and energy >= 90 then rec( 'tiger_palm' ) end
                 -- RJW if it's talented and ready
                 if talented.rushing_jade_wind and ready( 'rushing_jade_wind' ) then rec( 'rushing_jade_wind') end
                 -- Chi Burst if it's talented and ready
                 if talented.chi_burst and ready( 'chi_burst' ) then rec( 'chi_burst' ) end
                 -- Chi Wave if it's talented and ready
                 if talented.chi_wave and ready( 'chi_wave' ) then rec( 'chi_wave' ) end
-                -- We can recommend TP at as low at 45 because next ability will be Blackout Strike which will put us high enough for followup KS
-                if ready( 'tiger_palm' ) and not wait_for_priority_abilities and energy > tp_threshold and not wait_for_priority_abilities then rec( 'tiger_palm' ) end
+                -- TP
+                if ready( 'tiger_palm' ) and tp_threshold >= 40 then rec( 'tiger_palm' ) end
             end
         end
 
@@ -182,12 +186,12 @@ function ()
               -- Always combo it with KS for Brew Generation, since with Class Trinket more brews equals more damage
               if class_trinket and ready( 'keg_smash' ) and buffRemains.blackout_combo > 0 then rec( 'keg_smash' ) end
               -- Combo with TP for -1s on brews and 200% dmg on TP, and hope for Face Palm procs
-              if ready( 'tiger_palm' ) and not wait_for_priority_abilities and buffRemains.blackout_combo > 0 and energy > 60 then rec( 'tiger_palm' ) end
+              if ready( 'tiger_palm' ) and not wait_for_priority_abilities and buffRemains.blackout_combo > 0 and tp_threshold >= 40 then rec( 'tiger_palm' ) end
             end
             -- Weave in one non-blacked out ability between BoS > BoS buffed ability
             if buffRemains.blackout_combo == 0 then
-                -- Spend some energy
-                -- if ready( 'tiger_palm' ) and tp_threshold >= 40 then rec( 'tiger_palm' ) end
+                -- Tiger palm if about to cap energy
+                if ready( 'tiger_palm' ) and energy >= 90 then rec( 'tiger_palm' ) end
                 -- Breath of Fire if it's ready
                 if ready( 'breath_of_fire' ) then rec( 'breath_of_fire' ) end
                 -- RJW if it's talented and ready
@@ -196,8 +200,8 @@ function ()
                 if talented.chi_burst and ready( 'chi_burst' ) then rec( 'chi_burst' ) end
                 -- Chi Wave if it's talented and ready
                 if talented.chi_wave and ready( 'chi_wave' ) then rec( 'chi_wave' ) end
-                -- We can recommend TP at as low at 45 because next ability will be Blackout Strike which will put us high enough for followup KS
-                if ready( 'tiger_palm' ) and energy > tp_threshold and not wait_for_priority_abilities then rec( 'tiger_palm' ) end
+                -- TP
+                if ready( 'tiger_palm' ) and tp_threshold >= 40 then rec( 'tiger_palm' ) end
             end
         end
     end
