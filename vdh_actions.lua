@@ -80,14 +80,14 @@ aura_env.talents = {
 
     felblade = { 3, 1, 1 },
     flame_crash = { 3, 2, 1 },
-    gluttony = { 3, 3, 1 },
+    fel_eruption = { 3, 3, 1 },
 
     feed_the_demon = { 4, 1, 1 },
     fracture = { 4, 2, 1 },
     soul_rending = { 4, 3, 1 },
 
     concentrated_sigils = { 5, 1, 1 },
-    fel_eruption = { 5, 2, 1 },
+    sigil_of_chains = { 5, 2, 1 },
     quickened_sigils = { 5, 3, 1 },
 
     fel_devastation = {6, 1, 1 },
