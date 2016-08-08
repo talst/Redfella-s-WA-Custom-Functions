@@ -173,11 +173,11 @@ function ()
     if ready( 'blood_boil' ) and charges.blood_boil >= 0 and debuffRemains.blood_plague == 0 then rec( 'blood_boil' ) end
     -- Bonestorm if: CD usage enabled, talented and need to dump RP
     if WA_Redfellas_Rot_BDK_Off_CDs and talented.bonestorm and ready( 'bonestorm' ) and runic_power >= 100 then rec( 'bonestorm' ) end
-    -- Blood Boil if: over 1.6 charges available
-    if ready( 'death_and_decay' ) and (talented.rapid_decomposition or buffRemains.crimson_scourge >= 0 or aura_env.targetCount > 1) then rec( 'death_and_decay' ) end
-    -- Death Strike if: about to cap Runic Power and not using bonestorm  -- OR --  bonestorm is on cd
-    if ready( 'blood_boil' ) and chargeCt( 'blood_boil' ) >= 1.6 then rec( 'blood_boil' ) end
     -- Death and Decay on CD if: using Rapid Decomposition talent  -- OR --  Crimson Scourge Procs  -- OR --  fighting more than one target
+    if ready( 'death_and_decay' ) and (talented.rapid_decomposition or buffRemains.crimson_scourge >= 0 or aura_env.targetCount > 1) then rec( 'death_and_decay' ) end
+    -- Blood Boil if: over 1.6 charges available
+    if ready( 'blood_boil' ) and chargeCt( 'blood_boil' ) >= 1.6 then rec( 'blood_boil' ) end
+    -- Death Strike if: about to cap Runic Power and not using bonestorm  -- OR --  bonestorm is on cd
     if (not talented.bonestorm or (WA_Redfellas_Rot_BDK_Off_CDs and cooldowns.bonestorm > 0)) and ready( 'death_strike' ) and death_strike_available and runic_power >= rp_cap_warning then rec( 'death_strike' ) end
     -- Cooldowns Enabled: Dancing Rune Weapon if: Low on Bone Shield Stacks
     if WA_Redfellas_Rot_BDK_Off_CDs and ready( 'dancing_rune_weapon' ) and bone_shield_stacks <= 6 and runes >= 4 then rec( 'dancing_rune_weapon' ) end
@@ -186,11 +186,13 @@ function ()
 
     -- Spend as much runes as possible during RD DnD
     if talented.rapid_decomposition and buffRemains.death_and_decay > 0 then
-        -- Just make sure to retain Ossuary bonus if talented into it
-        if talented.ossuary then
-            if ready( 'marrowrend' ) and bone_shield_stacks <= 4 and runes >= 2 then rec( 'marrowrend') end
-            if ready( 'heart_strike' ) and bone_shield_stacks >= 5 and runes >= 1 then rec( 'heart_strike') end
+        -- Just make sure to retain ample bone shield stacks for Ossuary bonus if talented into it and vs. single target
+        if talented.ossuary and aura_env.targetCount == 1 then
+            if ready( 'marrowrend' ) and bone_shield_stacks <= 5 and runes >= 2 then rec( 'marrowrend') end
+            if ready( 'heart_strike' ) and bone_shield_stacks >= 6 and runes >= 1 then rec( 'heart_strike') end
         -- Otherwise keep at least 2 bone shield stacks to be safe
+        -- Note: HS instead of keeping Ossuary up against two targets,
+        -- since when cleaving, it generates more RP than Ossuary saves
         else
             if ready( 'marrowrend' ) and bone_shield_stacks <= 2 and runes >= 2 then rec( 'marrowrend') end
             if ready( 'heart_strike' ) and bone_shield_stacks >= 3 and runes >= 1 then rec( 'heart_strike') end    
