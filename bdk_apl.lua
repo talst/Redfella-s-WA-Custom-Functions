@@ -110,7 +110,8 @@ function ()
     local death_strike_available = false
     local two_death_strikes_available = false
     local artifact_weapon = IsEquippedItem(128402)
-    local consumption_heal = 99999999999999999 -- placeholder until the function is finished
+    local blooddrinker_heal = aura_env.blooddrinker_heal()
+    local consumption_heal = aura_env.consumption_heal()
 
     -- Easy booleans for how many death strikes we can pump out, we can actually do three with Ossuary but no need in this APL
     if (buffRemains.ossuary > 0 and runic_power >= 40) or runic_power >= 45 then death_strike_available = true end
@@ -121,15 +122,14 @@ function ()
     if time_to_3_runes <= 4 then spend_runes = true end
 
     -- Set rp cap for when to Death Strike even if it overheals
-    local rp_cap_warning = 78
-    if talented.ossuary then rp_cap_warning = 88 end
-    local rp_high_cap = 108
-    if talented.ossuary then rp_high_cap = 110 end
+    local rp_cap_warning = 75
+    if talented.ossuary then rp_cap_warning = 85 end
+    local rp_high_cap = 100
+    if talented.ossuary then rp_high_cap = 105 end
 
     -- Grab the expiration of Bone Shield aura
     local bone_shield_aura = select(7,UnitBuff("player",GetSpellInfo(195181))) or 0
     aura_env.bone_shield_danger = bone_shield_aura - GetTime()
-
 
 
     ---------------
@@ -152,9 +152,8 @@ function ()
         if ready( 'dancing_rune_weapon' ) and not death_strike_available and cooldowns.vampiric_blood > 0 and buffRemains.vampiric_blood == 0 then rec( 'dancing_rune_weapon' ) end
         -- Prio RP generators when in danger
         if ready( 'death_and_decay' ) and (talented.rapid_decomposition or buffRemains.crimson_scourge >= 0 or aura_env.targetCount > 1) then rec( 'death_and_decay' ) end
-        -- Marrowrend if: six or less Bone Shield stacks
+        -- Marrowrend if: six or less Bone Shield stacks & Heart Strike if above
         if ready( 'marrowrend' ) and bone_shield_stacks <= 6 and spend_runes then rec( 'marrowrend') end
-        -- Heart Strike if: good one Bone Shield stacks
         if ready( 'heart_strike' ) and bone_shield_stacks >= 7 and spend_runes then rec( 'heart_strike') end
     end
 
@@ -163,46 +162,48 @@ function ()
         -- Death Strike
         if ready( 'death_strike' ) and death_strike_available then rec( 'death_strike' ) end
     end
-    
 
-    -- REGULAR PLAY
+
+    -- SELFHEALS IF: Will not overheal
+    -- Consumption if: Artifact equipped
     if artifact_weapon and WA_Redfellas_Rot_BDK_Def_CDs and  ready( 'consumption') and missing_health_percentage >= consumption_heal then rec( 'consumption' ) end
-    -- Death Strike if: heal when in safe zone if  DS will not overheal, but only if we're not banking for bonestorm
+    -- Blooddrinker if: talented & got runes
+    if talented.blooddrinker and WA_Redfellas_Rot_BDK_Def_CDs and ready( 'blooddrinker' ) and missing_health_percentage >= blooddrinker_heal then rec( 'blooddrinker' ) end
+    -- Death Strike if: not banking for Bonestorm
     if (not talented.bonestorm or (WA_Redfellas_Rot_BDK_Off_CDs and cooldowns.bonestorm > 0)) and ready( 'death_strike' ) and health_percentage > danger_treshold and missing_health_percentage >= ds_heal then rec( 'death_strike' ) end
-    -- Apply blood plague
-    if ready( 'blood_boil' ) and charges.blood_boil >= 0 and debuffRemains.blood_plague == 0 then rec( 'blood_boil' ) end
-    -- Bonestorm if: CD usage enabled, talented and need to dump RP
-    if WA_Redfellas_Rot_BDK_Off_CDs and talented.bonestorm and ready( 'bonestorm' ) and runic_power >= 100 then rec( 'bonestorm' ) end
-    -- Death and Decay on CD if: using Rapid Decomposition talent  -- OR --  Crimson Scourge Procs  -- OR --  fighting more than one target
-    if ready( 'death_and_decay' ) and (talented.rapid_decomposition or buffRemains.crimson_scourge >= 0 or aura_env.targetCount > 1) then rec( 'death_and_decay' ) end
-    -- Blood Boil if: over 1.6 charges available
-    if ready( 'blood_boil' ) and chargeCt( 'blood_boil' ) >= 1.6 then rec( 'blood_boil' ) end
-    -- Death Strike if: about to cap Runic Power and not using bonestorm  -- OR --  bonestorm is on cd
-    if (not talented.bonestorm or (WA_Redfellas_Rot_BDK_Off_CDs and cooldowns.bonestorm > 0)) and ready( 'death_strike' ) and death_strike_available and runic_power >= rp_cap_warning then rec( 'death_strike' ) end
-    -- Cooldowns Enabled: Dancing Rune Weapon if: Low on Bone Shield Stacks
-    if WA_Redfellas_Rot_BDK_Off_CDs and ready( 'dancing_rune_weapon' ) and bone_shield_stacks <= 6 and runes >= 4 then rec( 'dancing_rune_weapon' ) end
-    -- Marrowrend if: missing Bone Shield   -- OR --  DRW active and at four or less Bone Shield stacks
-    if ready( 'marrowrend' ) and (bone_shield_stacks == 0 and runes >= 2) or (buffRemains.dancing_rune_weapon > 0 and bone_shield_stacks <= 4 and runes >= 2) then rec( 'marrowrend') end
 
-    -- Spend as much runes as possible during RD DnD
+
+    -- Blood Boil if: Blood Plague missing
+    if ready( 'blood_boil' ) and charges.blood_boil >= 0 and debuffRemains.blood_plague == 0 then rec( 'blood_boil' ) end
+    -- Death and Decay on CD if: using Rapid Decomposition talent  -- OR --  Crimson Scourge  -- OR --  fighting more than one target
+    if ready( 'death_and_decay' ) and (talented.rapid_decomposition or buffRemains.crimson_scourge >= 0 or aura_env.targetCount > 1) then rec( 'death_and_decay' ) end
+    -- Blood Boil if: over 1.5 charges available
+    if ready( 'blood_boil' ) and chargeCt( 'blood_boil' ) >= 1.5 then rec( 'blood_boil' ) end
+    -- Cooldowns Enabled: Dancing Rune Weapon to generate Bone Shield stacks
+    if WA_Redfellas_Rot_BDK_Off_CDs and ready( 'dancing_rune_weapon' ) and bone_shield_stacks <= 4 and runes >= 2 then rec( 'dancing_rune_weapon' ) end
+    -- Marrowrend if: missing Bone Shield
+    if ready( 'marrowrend' ) and bone_shield_stacks == 0 and runes >= 2 then rec( 'marrowrend') end
+    -- Bonestorm if: CD usage enabled, talented and 100+ RP
+    if WA_Redfellas_Rot_BDK_Off_CDs and talented.bonestorm and ready( 'bonestorm' ) and runic_power >= 100 then rec( 'bonestorm' ) end
+    -- Death Strike if: Need to spend RP and not talented Bonestorm / Bonestorm on CD
+    if (not talented.bonestorm or (WA_Redfellas_Rot_BDK_Off_CDs and cooldowns.bonestorm > 0)) and ready( 'death_strike' ) and death_strike_available and runic_power >= rp_cap_warning then rec( 'death_strike' ) end
+    -- Marrowrend if: Need 6 or more BS stacks and DRW active
+    if ready( 'marrowrend' ) and buffRemains.dancing_rune_weapon > 0 and bone_shield_stacks <= 4 and runes >= 2 then rec( 'marrowrend') end
+
+    -- If standing in DnD with Rapid Decomposition
     if talented.rapid_decomposition and buffRemains.death_and_decay > 0 then
-        -- Just make sure to retain ample bone shield stacks for Ossuary bonus if talented into it and vs. single target
-        if talented.ossuary and aura_env.targetCount == 1 then
-            if ready( 'marrowrend' ) and bone_shield_stacks <= 5 and runes >= 2 then rec( 'marrowrend') end
-            if ready( 'heart_strike' ) and bone_shield_stacks >= 6 and runes >= 1 then rec( 'heart_strike') end
-        -- Otherwise keep at least 2 bone shield stacks to be safe
-        -- Note: HS instead of keeping Ossuary up against two targets,
-        -- since when cleaving, it generates more RP than Ossuary saves
-        else
-            if ready( 'marrowrend' ) and bone_shield_stacks <= 2 and runes >= 2 then rec( 'marrowrend') end
-            if ready( 'heart_strike' ) and bone_shield_stacks >= 3 and runes >= 1 then rec( 'heart_strike') end    
-        end
-    -- Regular rune spending: aim to cap bone shield stacks
+        -- Fighting one target, keeping up Ossuary is optimal
+        if talented.ossuary and aura_env.targetCount == 1 and ready( 'marrowrend' ) and bone_shield_stacks <= 5 and runes >= 2 then rec( 'marrowrend') end
+        if talented.ossuary and aura_env.targetCount == 1 and ready( 'heart_strike' ) and bone_shield_stacks >= 6 and runes >= 1 then rec( 'heart_strike') end
+        -- More than 1 target, HS will gain +3 (from main target) and +6 RP per cleave hit so using HS even if under 5 Bone Shield stacks is a net RP gain
+        if talented.ossuary and aura_env.targetCount >= 2 and ready( 'marrowrend' ) and bone_shield_stacks <= 2 and runes >= 2 then rec( 'marrowrend') end
+        if talented.ossuary and aura_env.targetCount >= 2 and ready( 'heart_strike' ) and bone_shield_stacks >= 3 and runes >= 1 then rec( 'heart_strike') end
+    -- Regular rune spending: stay below 4 ready runes, but keep near it for next DnD
     else
         if ready( 'marrowrend' ) and bone_shield_stacks <= 6 and spend_runes then rec( 'marrowrend') end
         if ready( 'heart_strike' ) and bone_shield_stacks >= 7 and spend_runes then rec( 'heart_strike') end
     end
-    
+
     -- Blood Tap if: time to 3 runes available is higher than 5 seconds
     if talented.blood_tap and ready ('blood_tap') and aura_env.time_to_x_runes(3) > 5 then rec( 'blood_tap' ) end
     -- Blood Boil if: really nothing else to cast

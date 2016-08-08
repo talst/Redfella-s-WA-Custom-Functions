@@ -61,8 +61,6 @@ aura_env.showCooldownRing = true
 aura_env.invertCooldownRing = false
 aura_env.showRangeHighlight = true
 
-
-
 aura_env.recommended = 204945
 aura_env.timeToReady = 0
 aura_env.timeOffset = 0
@@ -73,7 +71,7 @@ aura_env.targetCount = 0
 aura_env.talents = {
     bloodworms = { 1, 1, 1 },
     hearbreaker = { 1, 2, 1 },
-    bloddrinker = { 1, 3, 1 },
+    blooddrinker = { 1, 3, 1 },
 
     rapid_decomposition = { 2, 1, 1 },
     soulgorge = { 2, 2, 1 },
@@ -112,7 +110,8 @@ aura_env.abilities = {
     vampiric_blood = 55233,
     blood_tap = 221699,
     bonestorm = 194844,
-    consumption = 205223
+    consumption = 205223,
+    blooddrinker = 206931
 }
 
 aura_env.chargedAbilities = {
@@ -130,7 +129,8 @@ aura_env.cooldowns = {
     vampiric_blood = 55233,
     blood_boil = 50842,
     death_and_decay = 43265,
-    blood_tap = 221699
+    blood_tap = 221699,
+    blooddrinker = 206931
 }
 
 aura_env.charges = {}
@@ -249,6 +249,14 @@ function aura_env.time_to_x_runes(runes_required)
     end
 end
 
+function aura_env.consumption_heal()
+  local apBase, apPos, apNeg = UnitAttackPower("player")
+  local attack_power = apBase + apPos + apNeg;
+  local minDamage, maxDamage, minOffHandDamage, maxOffHandDamage, physicalBonusPos, physicalBonusNeg, percent = UnitDamage("player")
+  -- @TODO
+  return 0
+end
+
 -- Alarog's DS predictor hookup, un-localized
 function aura_env.death_strike_heal()
     local dmg = 0
@@ -274,50 +282,47 @@ function aura_env.death_strike_heal()
     heal = dmg * 0.2
     health = UnitHealthMax("player")
 
-    if (heal / health) < 0.07 then
-        heal = health * 0.07
-    end
+    if (heal / health) < 0.07 then heal = health * 0.07 end
 
     -- Scale healing based on versatility
-    healMult = 1 + GetCombatRatingBonus(29)/100
+    healMult = 1 + ((GetCombatRatingBonus(29) + GetVersatilityBonus(30)) / 100) -- Vers with possible modifiers like Tank ring
 
     -- Scale heal estimate when Vampiric Blood is active
-    if UnitAura("player", 55233) then
-        -- TODO
-        --   This will need to scale with the number of
-        --   ranks in the Vampiric Fangs artifact trait, but do
-        --   not know how to do that yet (not in beta)
-        healMult = healMult * 1.3
-    end
-
+    if UnitAura("player", 55233) then healMult = healMult * 1.3 end
     -- Scale heal with priest guardian spirit
-    if UnitAura("player", 47788) then
-        healMult = healMult * 1.4
-    end
-
+    if UnitAura("player", 47788) then healMult = healMult * 1.4 end
     -- Scale heal with priest divine hymn
-    if UnitAura("player", 64844) then
-        healMult = healMult * 1.1
-    end
-
-    -- TODO
-    --   This will also need to scale with any external CDs
-    --   that will increase healing taken.  I haven't done
-    --   an audit of them though, but maybe other DKs can
-    --   contribute
+    if UnitAura("player", 64844) then healMult = healMult * 1.1 end
 
     heal = heal * healMult
-
-    if (heal / health) < 0.1 then
-        heal = health * 0.1
-    end
+    if (heal / health) < 0.1 then heal = health * 0.1 end
 
     healScaled = math.floor( (heal+500) / 1000 )
     healPercent = math.floor( heal / health * 100 )
 
-
     return healPercent
-    --return healScaled -- debug
+end
+
+
+-- predict BD heal
+function aura_env.blooddrinker_heal()
+    local health = UnitHealthMax("player")
+    local apBase, apPos, apNeg = UnitAttackPower("player")
+    local attack_power = apBase + apPos + apNeg;
+    local bd_multiplier = 12.93; -- Blood Drinker
+    local healMult = 1 + ((GetCombatRatingBonus(29) + GetVersatilityBonus(30)) / 100) -- Vers with possible modifiers like Tank ring
+
+    -- Scale heal with Vampiric Blood
+    if UnitAura("player", 55233) then healMult = healMult * 1.3 end
+    -- Scale heal with priest guardian spirit
+    if UnitAura("player", 47788) then healMult = healMult * 1.4 end
+    -- Scale heal with priest divine hymn
+    if UnitAura("player", 64844) then healMult = healMult * 1.1 end
+
+    local heal = attack_power * bd_multiplier * healMult
+    local heal_percent = math.floor( heal / health * 100 )
+
+    return heal_percent
 end
 
 
