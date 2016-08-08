@@ -118,7 +118,7 @@ function ()
 
     -- Calculate time to soft-capping runes, we always, ALWAYS prefer to have three runes charging
     local time_to_3_runes = aura_env.time_to_x_runes(3)
-    if time_to_3_runes <= 3.5 then spend_runes = true end
+    if time_to_3_runes <= 4 then spend_runes = true end
 
     -- Set rp cap for when to Death Strike even if it overheals
     local rp_cap_warning = 78
@@ -163,7 +163,7 @@ function ()
         -- Death Strike
         if ready( 'death_strike' ) and death_strike_available then rec( 'death_strike' ) end
     end
-    -- DANGER TRESHOLD END
+    
 
     -- REGULAR PLAY
     if artifact_weapon and WA_Redfellas_Rot_BDK_Def_CDs and  ready( 'consumption') and missing_health_percentage >= consumption_heal then rec( 'consumption' ) end
@@ -184,30 +184,23 @@ function ()
     -- Marrowrend if: missing Bone Shield   -- OR --  DRW active and at four or less Bone Shield stacks
     if ready( 'marrowrend' ) and (bone_shield_stacks == 0 and runes >= 2) or (buffRemains.dancing_rune_weapon > 0 and bone_shield_stacks <= 4 and runes >= 2) then rec( 'marrowrend') end
 
-    -- if: Talented Rapid Decomposition
+    -- Spend as much runes as possible during RD DnD
     if talented.rapid_decomposition and buffRemains.death_and_decay > 0 then
-        -- if: Standing in Death and Decay (increased weight for using Heart Strike)
-        if buffRemains.death_and_decay > 0 then
-            -- Marrowrend if: three or less Bone Shield stacks
-            if ready( 'marrowrend' ) and bone_shield_stacks <= 3 and spend_runes then rec( 'marrowrend') end
-            -- Heart Strike if: good one Bone Shield stacks
-            if ready( 'heart_strike' ) and bone_shield_stacks >= 4 and runes > 0 then rec( 'heart_strike') end
+        -- Just make sure to retain Ossuary bonus if talented into it
+        if talented.ossuary then
+            if ready( 'marrowrend' ) and bone_shield_stacks <= 4 and runes >= 2 then rec( 'marrowrend') end
+            if ready( 'heart_strike' ) and bone_shield_stacks >= 5 and runes >= 1 then rec( 'heart_strike') end
+        -- Otherwise keep at least 2 bone shield stacks to be safe
         else
-            -- Marrowrend if: six or less Bone Shield stacks
-            if ready( 'marrowrend' ) and bone_shield_stacks <= 6 and spend_runes then rec( 'marrowrend') end
-            -- Heart Strike if: good one Bone Shield stacks
-            if ready( 'heart_strike' ) and bone_shield_stacks >= 7 and spend_runes then rec( 'heart_strike') end
+            if ready( 'marrowrend' ) and bone_shield_stacks <= 2 and runes >= 2 then rec( 'marrowrend') end
+            if ready( 'heart_strike' ) and bone_shield_stacks >= 3 and runes >= 1 then rec( 'heart_strike') end    
         end
-    -- Not using Rapid Decomposition
+    -- Regular rune spending: aim to cap bone shield stacks
     else
-        -- Marrowrend if: six or less Bone Shield stacks
         if ready( 'marrowrend' ) and bone_shield_stacks <= 6 and spend_runes then rec( 'marrowrend') end
-        -- Heart Strike if: good one Bone Shield stacks
         if ready( 'heart_strike' ) and bone_shield_stacks >= 7 and spend_runes then rec( 'heart_strike') end
     end
-    -- REGULAR PLAY ENDS
-
-    -- NOTHING TO DO STARTS (with optimal haste we should never get this low on priorities..)
+    
     -- Blood Tap if: time to 3 runes available is higher than 5 seconds
     if talented.blood_tap and ready ('blood_tap') and aura_env.time_to_x_runes(3) > 5 then rec( 'blood_tap' ) end
     -- Blood Boil if: really nothing else to cast
