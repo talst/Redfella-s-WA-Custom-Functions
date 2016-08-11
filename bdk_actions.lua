@@ -249,12 +249,44 @@ function aura_env.time_to_x_runes(runes_required)
     end
 end
 
+-- attempt to predict consumption heal -- it's close not 100% accurate
 function aura_env.consumption_heal()
-  local apBase, apPos, apNeg = UnitAttackPower("player")
-  local attack_power = apBase + apPos + apNeg;
-  local minDamage, maxDamage, minOffHandDamage, maxOffHandDamage, physicalBonusPos, physicalBonusNeg, percent = UnitDamage("player")
-  -- @TODO
-  return 0
+    -- max hp
+    local health = UnitHealthMax("player")
+    -- attack power
+    local apBase, apPos, apNeg = UnitAttackPower("player")
+    local attack_power = apBase + apPos + apNeg;
+    -- vers with possible bonus like tank ring
+    local vers = 1 + ((GetCombatRatingBonus(29) + GetVersatilityBonus(30)) / 100)
+    -- from traits, need to calculate this for real later
+    local artifact_trait = 1.05
+    -- hotfix aura http://www.wowhead.com/spell=137008/blood-death-knight
+    local hidden_bdk_aura = 2
+    -- consumption multiplier with another hotfix
+    local consumption_multiplier = 2.5 * 1.15 -- consumption base modifier + hotfix for 15%
+    -- artifact info
+    local item_info = GetItemStats("item:128402:0:0:0:0:0:0:0:0:0:0:0:1:0") -- dps info from weapon
+    local swingspeed = 3.6;
+    local damage = item_info.ITEM_MOD_DAMAGE_PER_SECOND_SHORT * swingspeed -- same as min+max/2
+    -- normalize weapon damge for calculations
+    local normalized_damage = damage + attack_power / 3.5 * swingspeed -- normalized damage
+    -- combine multipliers
+    local multipliers = artifact_trait * hidden_bdk_aura * consumption_multiplier -- multipliers combined
+    -- tweak since we're a bit above what tooltip says, for some reason (rounding?)
+    local fix = 0.98088
+    -- predict consumption damage
+    local consumption_heal = normalized_damage * multipliers * vers * fix; -- calculate consumption damage
+    -- Scale heal estimate when Vampiric Blood is active
+    if UnitAura("player", 55233) then consumption_heal = consumption_heal * 1.3 end
+    -- Scale heal with priest guardian spirit
+    if UnitAura("player", 47788) then consumption_heal = consumption_heal * 1.4 end
+    -- Scale heal with priest divine hymn
+    if UnitAura("player", 64844) then consumption_heal = consumption_heal * 1.1 end
+    -- round
+    consumption_heal = math.floor(consumption_heal + 0.5)
+    -- turn into healed percentage
+    local heal_percent = math.floor( consumption_heal / health * 100 )
+    return consumption_heal
 end
 
 -- Alarog's DS predictor hookup, un-localized
