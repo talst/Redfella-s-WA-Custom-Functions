@@ -106,6 +106,7 @@ function ()
     local critical_treshold = aura_env.critical_treshold
     local ready = aura_env.ready
     local rec = aura_env.rec
+    local artifact_weapon = IsEquippedItem(128832)
 
     -- Set pain cap for when to Soul Cleave even if it overheals
     local pain_cap = 70
@@ -118,58 +119,64 @@ function ()
     ---------------
     -- APL START --
     ---------------
-    if not in_combat and ready( 'sigil_of_flame' ) then rec( 'sigil_of_flame' ) end
-    if not in_combat and ready( 'infernal_strike' ) and chargeCt('infernal_strike') >= 1 then rec( 'infernal_strike' ) end
+    if not in_combat then
+        if ready( 'sigil_of_flame' ) then rec( 'sigil_of_flame' ) end
+        if ready( 'infernal_strike' ) and chargeCt('infernal_strike') >= 1 then rec( 'infernal_strike' ) end
+    else
+        -- Defensive cooldowns are toggled on
+        if WA_Redfellas_Rot_VDH_Def_CDs then
+            -- Soul Carver if: health is below 70% and 0 fragments
+            if artifact_weapon and ready( 'soul_carver' ) and health_percentage <= 70 and soul_fragments == 0 then rec( 'soul_carver' ) end
+            -- Fiery Brand if: health is below 65%
+            if ready( 'fiery_brand' ) and health_percentage <= 65 then rec( 'fiery_brand' ) end
+            -- Demon Spikes charge if: health is below 90% and capped or nearly capped on DS charges
+            if ready( 'demon_spikes' ) and chargeCt('demon_spikes') >= 1.70 and health_percentage <= 80 then rec( 'demon_spikes' ) end
 
-    -- Defensive cooldowns are toggled on
-    if WA_Redfellas_Rot_VDH_Def_CDs then
-        -- Soul Carver if: health is below 70% and 0 fragments
-        if ready( 'soul_carver' ) and health_percentage <= 70 and soul_fragments == 0 then rec( 'soul_carver' ) end
-        -- Fiery Brand if: health is below 65%
-        if ready( 'fiery_brand' ) and health_percentage <= 65 then rec( 'fiery_brand' ) end
-        -- Demon Spikes charge if: health is below 90% and capped or nearly capped on DS charges
-        if ready( 'demon_spikes' ) and chargeCt('demon_spikes') >= 1.70 and health_percentage <= 80 then rec( 'demon_spikes' ) end
+            -- Below 25% hp
+            if health_percentage <= critical_treshold then
+              -- Meta if: health drops below 25% and we don't have soul barrier active
+              if ready( 'metamorphosis' ) and buffRemains.soul_barrier == 0 then rec( 'metamorphosis' ) end
+              -- Darkness if: health below 25%
+              if ready( 'darkness' ) then rec( 'darkness' ) end
+              -- After CDs have been used, if we're still in danger, only suggest Pain generators so we can heal asap
+            end
 
-        if health_percentage <= danger_treshold then
-            -- Fel Devastation if: we can
-            if talented.fel_devastation and ready( 'fel_devastation' ) then rec( 'fel_devastation' ) end
-            -- Soul Barrier if: we can
-            if talented.soul_barrier and ready( 'soul_barrier' ) then rec( 'soul_barrier' ) end
-            -- Soul Cleave if: we can
-            if ready( 'soul_cleave' ) then rec( 'soul_cleave' ) end
-            -- Meta if: health drops below 25% and we don't have soul barrier active
-            if ready( 'metamorphosis' ) and buffRemains.soul_barrier == 0 and health_percentage <= critical_treshold then rec( 'metamorphosis' ) end
-            -- Darkness if: health below 25%
-            if ready( 'darkness' ) and health_percentage <= critical_treshold then rec( 'darkness' ) end
-            -- After CDs have been used, if we're still in danger, only suggest Pain generators so we can heal asap
-            if ready( 'immolation_aura' ) then rec( 'immolation_aura' ) end
-            if talented.felblade and ready( 'felblade' ) and pain <= 75 then rec( 'felblade' ) end
-            if ready( 'shear' ) and not wait_for_priority_abilities then rec( 'shear' ) end
+            -- Below 55% hp
+            if health_percentage <= danger_treshold then
+                -- Fel Devastation if: we can
+                if talented.fel_devastation and ready( 'fel_devastation' ) then rec( 'fel_devastation' ) end
+                -- Soul Barrier if: we can
+                if talented.soul_barrier and ready( 'soul_barrier' ) then rec( 'soul_barrier' ) end
+                -- Soul Cleave if: we can
+                if ready( 'soul_cleave' ) then rec( 'soul_cleave' ) end
+                -- Generate Pain
+                if ready( 'immolation_aura' ) then rec( 'immolation_aura' ) end
+                if talented.felblade and ready( 'felblade' ) and pain <= 75 then rec( 'felblade' ) end
+                if ready( 'shear' ) and not wait_for_priority_abilities then rec( 'shear' ) end
+            end
         end
+
+        -- Soul Cleave if: healing required, at 60 pain and it will not overheal
+        if ready( 'soul_cleave' ) and pain >= 60 and soul_cleave_heal < missing_health_percentage then rec( 'soul_cleave' ) end
+        -- Sigil of Flame if: fighting multiple targets
+        if ready( 'sigil_of_flame' ) and aura_env.targetCount >= 2 then rec( 'sigil_of_flame' ) end
+        -- Immolation Aura if: not on CD
+        if ready( 'immolation_aura' ) then rec( 'immolation_aura' ) end
+        -- Spirit Bomb if: target not affected by frailty and we have fragments
+        if talented.spirit_bomb and ready( 'spirit_bomb' ) and debuffRemains.frailty == 0 and soul_fragments >= 1 then rec( 'spirit_bomb' ) end
+        -- Fracture if: single target, talented fracture and at pain softcap without needing healing
+        if aura_env.targetCount == 1 and talented.fracture and ready( 'fracture' ) and pain >= pain_cap then rec( 'fracture' ) end
+        -- Soul Cleave if: multitarget -- OR -- not talented fracture and at pain softcap without needing healing
+        if (not talented.fracture or aura_env.targetCount > 1) and ready( 'soul_cleave' ) and pain >= pain_cap then rec( 'soul_cleave' ) end
+        -- Fel Eruption if: talented
+        if talented.fel_eruption and ready( 'fel_eruption' ) then rec( 'fel_eruption' ) end
+        -- Felblade if: will not cap pain
+        if talented.felblade and ready( 'felblade' ) and pain <= 75 then rec( 'felblade' ) end
+        -- Infernal_strike if: about to cap charges
+        if ready( 'infernal_strike' ) and chargeCt('infernal_strike') >= 1.85 then rec( 'infernal_strike' ) end
+        -- Shear if: nothing else to do
+        if ready( 'shear' ) and not wait_for_priority_abilities then rec( 'shear' ) end
     end
-
-
-    -- Soul Cleave if: healing required, at 60 pain and it will not overheal
-    if ready( 'soul_cleave' ) and pain >= 60 and soul_cleave_heal < missing_health_percentage then rec( 'soul_cleave' ) end
-    -- Sigil of Flame if: fighting multiple targets
-    if ready( 'sigil_of_flame' ) and aura_env.targetCount >= 2 then rec( 'sigil_of_flame' ) end
-    -- Immolation Aura if: not on CD
-    if ready( 'immolation_aura' ) then rec( 'immolation_aura' ) end
-    -- Spirit Bomb if: target not affected by frailty and we have fragments
-    if talented.spirit_bomb and ready( 'spirit_bomb' ) and debuffRemains.frailty == 0 and soul_fragments >= 1 then rec( 'spirit_bomb' ) end
-    -- Fracture if: single target, talented fracture and at pain softcap without needing healing
-    if aura_env.targetCount == 1 and talented.fracture and ready( 'fracture' ) and pain >= pain_cap then rec( 'fracture' ) end
-    -- Soul Cleave if: multitarget -- OR -- not talented fracture and at pain softcap without needing healing
-    if (not talented.fracture or aura_env.targetCount > 1) and ready( 'soul_cleave' ) and pain >= pain_cap then rec( 'soul_cleave' ) end
-    -- Fel Eruption if: talented
-    if talented.fel_eruption and ready( 'fel_eruption' ) then rec( 'fel_eruption' ) end
-    -- Felblade if: will not cap pain
-    if talented.felblade and ready( 'felblade' ) and pain <= 75 then rec( 'felblade' ) end
-    -- Infernal_strike if: about to cap charges
-    if ready( 'infernal_strike' ) and chargeCt('infernal_strike') >= 1.85 then rec( 'infernal_strike' ) end
-    -- Shear if: nothing else to do
-    if ready( 'shear' ) and not wait_for_priority_abilities then rec( 'shear' ) end
-
     ---------------
     -- APL END --
     ---------------

@@ -109,7 +109,6 @@ aura_env.abilities = {
     infernal_strike = 189110,
     demon_spikes = 203720,
     metamorphosis = 187827,
-    soul_carver = 207407,
     darkness = 196718,
     fiery_brand = 204021,
     fel_devastation = 212084,
@@ -117,7 +116,8 @@ aura_env.abilities = {
     spirit_bomb = 218679,
     fel_eruption = 211881,
     felblade = 213241,
-    fracture = 209795
+    fracture = 209795,
+    soul_carver = 207407
 }
 
 aura_env.chargedAbilities = {
