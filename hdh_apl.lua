@@ -32,7 +32,9 @@ function ()
     local chargeCt = aura_env.chargeCt
     local cdLeft = aura_env.cdLeft
 
-    local fury = UnitPower("player")
+    local fury = UnitPower("player", SPELL_POWER_FURY)
+    local fury_max = UnitPowerMax("player", SPELL_POWER_FURY)
+    local fury_deficit = fury_max - fury
     local health_percentage = aura_env.health_percentage()
     local missing_health_percentage = 100 - health_percentage
     local in_combat = aura_env.in_combat
@@ -115,68 +117,99 @@ function ()
     local momentum = false
     if aura_env.momentum_duration > 0 then momentum = true end
 
+
     ---------------
     -- APL START --
     ---------------
+    if not in_combat and ready( 'fel_rush') then rec ('fel_rush' ) end
 
-    -- -- Defensive cooldowns are toggled on
-    -- if WA_Redfellas_Rot_HDH_Def_CDs then
-    --     -- Blur if: health is below 25%
-    --     if ready( 'blur' ) and health_percentage <= 25 then rec( 'blur' ) end
-    --     -- Darkness if: health is below 25%
-    --     if ready( 'darkness' ) and cooldowns.blur > 0 and buffRemains.blur == 0 and health_percentage <= 25 then rec( 'darkness' ) end
-    -- end
-
-    -- DPS APL
+    -- Defensive cooldowns are toggled on
+    if WA_Redfellas_Rot_HDH_Def_CDs then
+        -- Blur if: health is below 25%
+        if ready( 'blur' ) and health_percentage <= 25 then rec( 'blur' ) end
+        -- Darkness if: health is below 25%
+        if ready( 'darkness' ) and cooldowns.blur > 0 and buffRemains.blur == 0 and health_percentage <= 25 then rec( 'darkness' ) end
+    end
 
     if talented.momentum and aura_env.momentum_duration <= 0 then
         -- Vengeful retreat /w Momentum
-        if talented.momentum and fury > 10 and fury < 85 and ready( 'vengeful_retreat' ) then rec( 'vengeful_retreat' ) end
+        if fury_deficit >= 20 and ready( 'vengeful_retreat' ) then rec( 'vengeful_retreat' ) end
         -- Fel rush /w Momentum
-        if talented.momentum and ready( 'fel_rush' ) and chargeCt('fel_rush') >= 1 then rec( 'fel_rush' ) end
+        if fury_deficit >= 25 and ready( 'fel_rush' ) and chargeCt('fel_rush') >= 1.5 and cooldowns.vengeful_retreat > 4 then rec( 'fel_rush' ) end
+        -- Blur Offensively
+        if WA_Redfellas_Rot_HDH_Off_CDs and chargeCt('fel_rush') < 1 and ready('blur') and cooldowns.vengeful_retreat > 4 and fury_deficit >= 25 then  rec('blur') end
     end
 
     if not talented.momentum then
         -- Vengeful retreat
-        if fury < 85 and ready( 'vengeful_retreat' ) then rec( 'vengeful_retreat' ) end
+        if fury_deficit >= 20 and ready( 'vengeful_retreat' ) then rec( 'vengeful_retreat' ) end
         -- Fel rush
-        if ready( 'fel_rush' ) and chargeCt('fel_rush') >= 1.75 then rec( 'fel_rush' ) end
+        if talented.fel_mastery and fury_deficit >= 25 and ready( 'fel_rush' ) and chargeCt('fel_rush') >= 1.5 and cooldowns.vengeful_retreat > 4 then rec( 'fel_rush' ) end
     end
 
+    -- Throw glaives when OOR
+    local range = IsSpellInRange( abilityNames[162243] )
+    if range == 0 and ready('throw_glaive') then rec( 'throw_glaive' ) end
 
     -- Fury of the Illidari if Offensive CDs are toggled on
     if WA_Redfellas_Rot_HDH_Off_CDs and artifact_weapon and ready( 'fury_of_the_illidari' ) then rec( 'fury_of_the_illidari' ) end
+
     -- Eye Beam @ 90+ Fury (with Demonic)
     if fury >= 90 and talented.demonic then rec( 'eye_beam' ) end
+
+    if WA_Redfellas_Rot_HDH_Off_CDs then
+        -- If CDs enabled, pool fury for Meta
+        if (cooldowns.metamorphosis == 0 or cooldowns.metamorphosis < 5) and fury_deficit > 25 and ready('demons_bite') then rec( 'demons_bite' ) end
+        -- Meta up and plenty of fury, activate Meta
+        if fury_deficit <= 25 and ready( 'metamorphosis' ) then rec('metamorphosis') end
+    end
+
     -- Death Sweep / Blade Dance if 4+ target (with Momentum)
     if demon_form and talented.momentum and momentum and aura_env.targetCount >= 4 and ready( 'death_sweep' ) then rec( 'death_sweep' ) end
     if not demon_form and talented.momentum and momentum and aura_env.targetCount >= 4 and ready( 'blade_dance' ) then rec( 'blade_dance' ) end
+
     -- Fel Barrage @ 5 stacks (with Momentum)
     if talented.momentum and momentum and fel_barrage_stacks == 5 and ready('fel_barrage') then rec( 'fel_barrage' ) end
+
     -- Throw Glaive @ 2 stacks (with Momentum and Bloodlet)
     if talented.momentum and momentum and fel_barrage_stacks == 2 and talented.bloodlet and ready( 'throw_glaive' ) then rec( 'throw_glaive' ) end
+
     -- Fel Eruption
     if talented.fel_eruption and ready( 'fel_eruption') then rec( 'fel_eruption' ) end
+
     -- Felblade (if fury deficit >= 30)
-    if talented.felblade and fury <= 70 and ready( 'felblade') then rec( 'felblade' ) end
+    if talented.felblade and fury_deficit >= 30 and ready( 'felblade') then rec( 'felblade' ) end
+
      -- Annihilation (with Momentum)
     if talented.momentum and momentum and demon_form and ready( 'annihilation' ) then rec( 'annihilation' ) end
+
     -- Throw Glaive (with Momentum and Bloodlet)
     if talented.momentum and momentum and talented.bloodlet and ready( 'throw_glaive' ) then rec( 'throw_glaive' ) end
+
     -- Eye Beam (if Anguish in Artifact and Momentum) -- @TODO Anguish detection
     if talented.momentum and momentum and ready( 'eye_beam' ) then rec( 'eye_beam' ) end
+
     -- Chaos Strike (with Momentum)
     if talented.momentum and momentum and not demon_form and ready( 'chaos_strike' ) then rec( 'chaos_strike' ) end
+
     -- Fel Barrage @ 4 stacks (with Momentum)
     if talented.momentum and momentum and fel_barrage_stacks == 4 and ready('fel_barrage') then rec( 'fel_barrage' ) end
+
     -- Eye Beam
     if not talented.momentum and ready( 'eye_beam' ) then rec( 'eye_beam' ) end
+
+    -- Throw Glaive >= 3 target
+    if not demon_form and aura_env.targetCount >= 3 and ready( 'throw_glaive') then rec('throw_glaive') end
+
     -- Chaos Strike
     if ready( 'chaos_strike' ) then rec( 'chaos_strike' ) end
+
     -- Demon's Bite
     if ready( 'demons_bite' ) then rec( 'demons_bite' ) end
+
     -- Throw Glaive
     if ready( 'throw_glaive' ) then rec( 'throw_glaive' ) end
+
 
     ---------------
     -- APL END --
