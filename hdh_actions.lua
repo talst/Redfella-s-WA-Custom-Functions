@@ -112,8 +112,10 @@ aura_env.abilities = {
     throw_glaive = 185123,
     fel_barrage = 211053,
     fel_rush = 195072,
-    vengeful_retreat = 198793
-
+    vengeful_retreat = 198793,
+    blur = 198589,
+    metamorphosis = 191427,
+    darkness = 196718
 }
 
 aura_env.chargedAbilities = {
@@ -127,9 +129,8 @@ for k,v in pairs( aura_env.abilities ) do
 end
 
 aura_env.cooldowns = {
-    metamorphosis = 187827,
-    soul_carver = 207407,
-    darkness = 196718,
+    metamorphosis = 191427,
+    darkness = 196718
 }
 
 aura_env.charges = {}
@@ -139,7 +140,8 @@ aura_env.chargesMax = {}
 aura_env.buffs = {
     metamorphosis = 162264,
     fel_barrage = 222707,
-    momentum = 208628
+    momentum = 208628,
+    blur = 212800
 }
 
 aura_env.buffNames = {}
