@@ -119,7 +119,7 @@ aura_env.abilities = {
 }
 
 aura_env.chargedAbilities = {
-    fel_rush = 195072
+    fel_rush = 195072    
 }
 
 aura_env.abilityNames = {}

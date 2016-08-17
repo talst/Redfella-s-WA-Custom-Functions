@@ -103,7 +103,6 @@ function ()
     aura_env.recommended = 0
     aura_env.timeToReady = 10
 
-    -- for easy if / else APL'ing
     local danger_treshold = aura_env.danger_treshold
     local critical_treshold = aura_env.critical_treshold
     local ready = aura_env.ready
@@ -121,6 +120,7 @@ function ()
     ---------------
     -- APL START --
     ---------------
+
     if not in_combat and ready( 'fel_rush') then rec ('fel_rush' ) end
 
     -- Defensive cooldowns are toggled on
@@ -203,7 +203,11 @@ function ()
     end
 
     -- Eye Beam with enough targets when not using momentum
-    if not talented.momentum and aura_env.targetCount > 1 and ready( 'eye_beam' ) then rec( 'eye_beam' ) end
+    if not talented.momentum and aura_env.targetCount >= 2 and ready( 'eye_beam' ) then rec( 'eye_beam' ) end
+
+    -- Death Sweep / Blade dance @ >= 2 targets
+    if demon_form and aura_env.targetCount >= 2 and ready( 'death_sweep' ) then rec( 'death_sweep' ) end
+    if not demon_form and aura_env.targetCount >= 2 and ready( 'blade_dance' ) then rec( 'blade_dance' ) end
 
     -- Throw Glaive >= 3 target
     if not demon_form and aura_env.targetCount >= 3 and ready( 'throw_glaive') then rec('throw_glaive') end
@@ -221,11 +225,9 @@ function ()
     -- Simply show demons bite icon when just meleeing and nothing to press and cooldowns > 5s
     if talented.demon_blades and ready( 'demons_bite' ) then rec( 'demons_bite' ) end
 
-
     ---------------
     -- APL END --
     ---------------
-
 
     if aura_env.timeToReady < 5 then
         if aura_env.showCooldownRing then
