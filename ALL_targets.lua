@@ -21,8 +21,10 @@ function ( event, _, subtype, _, sourceGUID, sourceName, _, _, destGUID, destNam
         return
     end
 
+    local hostile = nil
+
     if destFlags then
-      local hostile = ( bit.band( destFlags, COMBATLOG_OBJECT_REACTION_FRIENDLY ) == 0 )
+      hostile = ( bit.band( destFlags, COMBATLOG_OBJECT_REACTION_FRIENDLY ) == 0 )
     end
     local time = GetTime()
 
