@@ -43,8 +43,6 @@ function ()
         end
     end
 
-    print("Targets", aura_env.targetCount)
-
     local gcdStart, gcdDuration = GetSpellCooldown(61304)
     local gcd = gcdStart + gcdDuration
 
