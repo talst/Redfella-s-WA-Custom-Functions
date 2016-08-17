@@ -66,7 +66,7 @@ aura_env.timeToReady = 0
 aura_env.timeOffset = 0
 
 aura_env.targets = {}
-aura_env.targetCount = aura_env.targetCount or 0
+aura_env.targetCount = 0
 
 aura_env.talents = {
     bloodworms = { 1, 1, 1 },
@@ -110,8 +110,8 @@ aura_env.abilities = {
     vampiric_blood = 55233,
     blood_tap = 221699,
     bonestorm = 194844,
-    blooddrinker = 206931,
-    consumption = 205223
+    consumption = 205223,
+    blooddrinker = 206931
 }
 
 aura_env.chargedAbilities = {
