@@ -77,7 +77,6 @@ function ()
         chargesMax[ k ] = maxCharges
     end
 
-
     -- Check if buffs are up.
     for k,v in pairs( buffList ) do
         local _, _, _, _, _, _, expires = UnitBuff("player", buffNames[ v ] )
@@ -121,7 +120,6 @@ function ()
     local energy_regen = select(2, GetPowerRegen())
     aura_env.tp_threshold = (energy + (timeleft * energy_regen)) - 25
     tp_threshold = aura_env.tp_threshold
-
 
     -- Talent not in use: Blackout Combo
     if talented.blackout_combo == false then
@@ -205,7 +203,6 @@ function ()
             end
         end
     end
-
 
     if aura_env.timeToReady < 5 then
         if aura_env.showCooldownRing then

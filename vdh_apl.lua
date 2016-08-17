@@ -119,29 +119,29 @@ function ()
     ---------------
     -- APL START --
     ---------------
+
     if not in_combat then
         if ready( 'sigil_of_flame' ) then rec( 'sigil_of_flame' ) end
         if ready( 'infernal_strike' ) and chargeCt('infernal_strike') >= 1 then rec( 'infernal_strike' ) end
+        if ready( 'throw_glaive' ) then rec( 'throw_glaive' ) end
+        if ready( 'shear' ) then rec( 'shear' ) end
     else
         -- Defensive cooldowns are toggled on
         if WA_Redfellas_Rot_VDH_Def_CDs then
-            -- Soul Carver if: health is below 70% and 0 fragments
+            -- Soul Carver if: health is below 70 and 0 fragments
             if artifact_weapon and ready( 'soul_carver' ) and health_percentage <= 70 and soul_fragments == 0 then rec( 'soul_carver' ) end
-            -- Fiery Brand if: health is below 65%
+            -- Fiery Brand if: health is below 65
             if ready( 'fiery_brand' ) and health_percentage <= 65 then rec( 'fiery_brand' ) end
-            -- Demon Spikes charge if: health is below 90% and capped or nearly capped on DS charges
+            -- Demon Spikes charge if: health is below 90 and capped or nearly capped on DS charges
             if ready( 'demon_spikes' ) and chargeCt('demon_spikes') >= 1.70 and health_percentage <= 80 then rec( 'demon_spikes' ) end
 
-            -- Below 25% hp
+            -- Below 25 hp
             if health_percentage <= critical_treshold then
-              -- Meta if: health drops below 25% and we don't have soul barrier active
-              if ready( 'metamorphosis' ) and buffRemains.soul_barrier == 0 then rec( 'metamorphosis' ) end
-              -- Darkness if: health below 25%
-              if ready( 'darkness' ) then rec( 'darkness' ) end
-              -- After CDs have been used, if we're still in danger, only suggest Pain generators so we can heal asap
+                -- Meta if: health drops below 25 and we don't have soul barrier active
+                if ready( 'metamorphosis' ) and buffRemains.soul_barrier == 0 then rec( 'metamorphosis' ) end
             end
 
-            -- Below 55% hp
+            -- Below 55 hp
             if health_percentage <= danger_treshold then
                 -- Fel Devastation if: we can
                 if talented.fel_devastation and ready( 'fel_devastation' ) then rec( 'fel_devastation' ) end
@@ -177,6 +177,7 @@ function ()
         -- Shear if: nothing else to do
         if ready( 'shear' ) and not wait_for_priority_abilities then rec( 'shear' ) end
     end
+
     ---------------
     -- APL END --
     ---------------

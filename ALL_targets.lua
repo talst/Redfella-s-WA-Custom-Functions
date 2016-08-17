@@ -55,5 +55,4 @@ function ( event, _, subtype, _, sourceGUID, sourceName, _, _, destGUID, destNam
     end
 
     return
-
 end

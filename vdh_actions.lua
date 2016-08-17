@@ -109,7 +109,6 @@ aura_env.abilities = {
     infernal_strike = 189110,
     demon_spikes = 203720,
     metamorphosis = 187827,
-    darkness = 196718,
     fiery_brand = 204021,
     fel_devastation = 212084,
     soul_barrier = 227225,
@@ -117,6 +116,7 @@ aura_env.abilities = {
     fel_eruption = 211881,
     felblade = 213241,
     fracture = 209795,
+    throw_glaive = 204157,
     soul_carver = 207407
 }
 
@@ -134,7 +134,6 @@ end
 aura_env.cooldowns = {
     metamorphosis = 187827,
     soul_carver = 207407,
-    darkness = 196718,
 }
 
 aura_env.charges = {}
