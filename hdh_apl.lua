@@ -142,7 +142,7 @@ function ()
 
     if not talented.momentum then
         -- Vengeful retreat
-        if fury_deficit >= 20 and ready( 'vengeful_retreat' ) then rec( 'vengeful_retreat' ) end
+        if talented.prepared and fury_deficit >= 20 and ready( 'vengeful_retreat' ) then rec( 'vengeful_retreat' ) end
         -- Fel rush
         if talented.fel_mastery and fury_deficit >= 25 and ready( 'fel_rush' ) and chargeCt('fel_rush') >= 1.5 and cooldowns.vengeful_retreat > 4 then rec( 'fel_rush' ) end
     end
@@ -196,7 +196,7 @@ function ()
     if talented.momentum and momentum and fel_barrage_stacks == 4 and ready('fel_barrage') then rec( 'fel_barrage' ) end
 
     -- Eye Beam
-    if not talented.momentum and ready( 'eye_beam' ) then rec( 'eye_beam' ) end
+    if not talented.momentum and not talented.demon_blades and ready( 'eye_beam' ) then rec( 'eye_beam' ) end
 
     -- Throw Glaive >= 3 target
     if not demon_form and aura_env.targetCount >= 3 and ready( 'throw_glaive') then rec('throw_glaive') end
