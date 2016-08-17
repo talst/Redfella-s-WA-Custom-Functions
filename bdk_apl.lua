@@ -43,6 +43,8 @@ function ()
         end
     end
 
+    print("Targets", aura_env.targetCount)
+
     local gcdStart, gcdDuration = GetSpellCooldown(61304)
     local gcd = gcdStart + gcdDuration
 
@@ -98,7 +100,6 @@ function ()
     aura_env.recommended = 0
     aura_env.timeToReady = 10
 
-    -- for easy if / else APL'ing
     local spend_runes = false
     local danger_treshold = aura_env.danger_treshold
     local critical_treshold = aura_env.critical_treshold
@@ -119,7 +120,7 @@ function ()
 
     -- Calculate time to soft-capping runes, we always, ALWAYS prefer to have three runes charging
     local time_to_3_runes = aura_env.time_to_x_runes(3)
-    if time_to_3_runes <= 4 then spend_runes = true end
+    if time_to_3_runes <= 3.75 then spend_runes = true end
 
     -- Set rp cap for when to Death Strike even if it overheals
     local rp_cap_warning = 75
@@ -130,7 +131,6 @@ function ()
     -- Grab the expiration of Bone Shield aura
     local bone_shield_aura = select(7,UnitBuff("player",GetSpellInfo(195181))) or 0
     aura_env.bone_shield_danger = bone_shield_aura - GetTime()
-
 
     ---------------
     -- APL START --
@@ -153,8 +153,8 @@ function ()
         -- Prio RP generators when in danger
         if ready( 'death_and_decay' ) and (talented.rapid_decomposition or buffRemains.crimson_scourge >= 0 or aura_env.targetCount > 1) then rec( 'death_and_decay' ) end
         -- Marrowrend if: six or less Bone Shield stacks & Heart Strike if above
-        if ready( 'marrowrend' ) and bone_shield_stacks <= 6 and spend_runes then rec( 'marrowrend') end
-        if ready( 'heart_strike' ) and bone_shield_stacks >= 7 and spend_runes then rec( 'heart_strike') end
+        if ready( 'marrowrend' ) and bone_shield_stacks <= 6 and runes >= 2 then rec( 'marrowrend') end
+        if ready( 'heart_strike' ) and bone_shield_stacks >= 7 and runes >= 1 then rec( 'heart_strike') end
     end
 
     -- Cooldowns Disabled: below danger treshold (default: 55%)
@@ -200,7 +200,7 @@ function ()
         if talented.ossuary and aura_env.targetCount >= 2 and ready( 'heart_strike' ) and bone_shield_stacks >= 3 and runes >= 1 then rec( 'heart_strike') end
     -- Regular rune spending: stay below 4 ready runes, but keep near it for next DnD
     else
-        if ready( 'marrowrend' ) and bone_shield_stacks <= 6 and spend_runes then rec( 'marrowrend') end
+        if ready( 'marrowrend' ) and bone_shield_stacks <= 6 and runes >= 2 then rec( 'marrowrend') end
         if ready( 'heart_strike' ) and bone_shield_stacks >= 7 and spend_runes then rec( 'heart_strike') end
     end
 
