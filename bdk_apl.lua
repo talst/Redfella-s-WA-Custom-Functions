@@ -108,9 +108,10 @@ function ()
     local bone_shield_stacks = aura_env.get_unit_aura_value(195181, 'count') or 0
     local death_strike_available = false
     local two_death_strikes_available = false
-    local artifact_weapon = IsEquippedItem(128402)
     local blooddrinker_heal = aura_env.blooddrinker_heal()
-    local consumption_heal = aura_env.consumption_heal()
+    local artifact_weapon = IsEquippedItem(128402)
+    local consumption_heal = 9999999999999
+    if artifact_weapon then consumption_heal = aura_env.consumption_heal() end
 
     -- Easy booleans for how many death strikes we can pump out, we can actually do three with Ossuary but no need in this APL
     if (buffRemains.ossuary > 0 and runic_power >= 40) or runic_power >= 45 then death_strike_available = true end
