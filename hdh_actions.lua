@@ -119,7 +119,7 @@ aura_env.abilities = {
 }
 
 aura_env.chargedAbilities = {
-    fel_rush = 195072    
+    fel_rush = 195072
 }
 
 aura_env.abilityNames = {}
@@ -173,11 +173,6 @@ end
 function aura_env.ready( spell )
     local result = aura_env.cooldowns[ spell ] < aura_env.timeToReady
     return result
-end
-
-function aura_env.soul_fragments()
-    local soul_fragments = GetSpellCount(228477) or 0
-    return soul_fragments
 end
 
 function aura_env.health_percentage()
