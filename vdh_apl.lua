@@ -34,7 +34,7 @@ function ()
 
     local soul_fragments = aura_env.soul_fragments()
     local pain = UnitPower("player")
-    local health_percentage = aura_env.health_percentage()
+    local health_percentage = math.ceil( (UnitHealth("player") / UnitHealthMax("player") * 100) )
     local missing_health_percentage = 100 - health_percentage
     local soul_cleave_heal = aura_env.soul_cleave_heal()
     local in_combat = aura_env.in_combat
@@ -128,20 +128,22 @@ function ()
     else
         -- Defensive cooldowns are toggled on
         if WA_Redfellas_Rot_VDH_Def_CDs then
-            -- Soul Carver if: health is below 70 and 0 fragments
+            -- Soul Carver if: health is below 70% and 0 fragments
             if artifact_weapon and ready( 'soul_carver' ) and health_percentage <= 70 and soul_fragments == 0 then rec( 'soul_carver' ) end
-            -- Fiery Brand if: health is below 65
-            if ready( 'fiery_brand' ) and health_percentage <= 65 then rec( 'fiery_brand' ) end
-            -- Demon Spikes charge if: health is below 90 and capped or nearly capped on DS charges
+
+            -- Demon Spikes charge if: health is below 80% and capped or nearly capped on DS charges
             if ready( 'demon_spikes' ) and chargeCt('demon_spikes') >= 1.70 and health_percentage <= 80 then rec( 'demon_spikes' ) end
 
-            -- Below 25 hp
+            -- Fiery Brand if: health is below 65
+            if buffRemains.demon_spikes == 0 and ready( 'fiery_brand' ) and health_percentage <= 75 then rec( 'fiery_brand' ) end
+
+            -- Below 30% hp
             if health_percentage <= critical_treshold then
                 -- Meta if: health drops below 25 and we don't have soul barrier active
                 if ready( 'metamorphosis' ) and buffRemains.soul_barrier == 0 then rec( 'metamorphosis' ) end
             end
 
-            -- Below 55 hp
+            -- Below 55% hp
             if health_percentage <= danger_treshold then
                 -- Fel Devastation if: we can
                 if talented.fel_devastation and ready( 'fel_devastation' ) then rec( 'fel_devastation' ) end
@@ -149,6 +151,8 @@ function ()
                 if talented.soul_barrier and ready( 'soul_barrier' ) then rec( 'soul_barrier' ) end
                 -- Soul Cleave if: we can
                 if ready( 'soul_cleave' ) then rec( 'soul_cleave' ) end
+                -- Fiery Brand if: we can
+                if ready( 'fiery_brand' ) then rec( 'fiery_brand' ) end
                 -- Generate Pain
                 if ready( 'immolation_aura' ) then rec( 'immolation_aura' ) end
                 if talented.felblade and ready( 'felblade' ) and pain <= 75 then rec( 'felblade' ) end
