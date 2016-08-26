@@ -32,7 +32,6 @@ function ()
     local chargeCt = aura_env.chargeCt
     local cdLeft = aura_env.cdLeft
 
-    local runic_power = UnitPower("player")
     local health_percentage = math.ceil( (UnitHealth("player") / UnitHealthMax("player") * 100) )
     local missing_health_percentage = 100 - health_percentage
 
@@ -113,19 +112,33 @@ function ()
     local consumption_heal = 9999999999999
     if artifact_weapon then consumption_heal = aura_env.consumption_heal() end
 
-    -- Easy booleans for how many death strikes we can pump out, we can actually do three with Ossuary but no need in this APL
-    if (buffRemains.ossuary > 0 and runic_power >= 40) or runic_power >= 45 then death_strike_available = true end
-    if (buffRemains.ossuary > 0 and runic_power >= 80) or runic_power >= 90 then two_death_strikes_available = true end
-
     -- Calculate time to soft-capping runes, we always, ALWAYS prefer to have three runes charging
     local time_to_3_runes = aura_env.time_to_x_runes(3)
     if time_to_3_runes <= 3.75 then spend_runes = true end
 
-    -- Set rp cap for when to Death Strike even if it overheals
-    local rp_cap_warning = 75
-    if talented.ossuary then rp_cap_warning = 85 end
-    local rp_high_cap = 100
-    if talented.ossuary then rp_high_cap = 105 end
+    local runic_power = UnitPower("player")
+    local runic_power_max = UnitPowerMax("player")
+    local runic_power_deficit = runic_power_max - runic_power
+    local runic_power_cap = 20 -- Base for Marrowrend
+
+    local rd_mult = 1
+     -- Standing in DnD with RD
+    if talented.rapid_decomposition and buffRemains.death_and_decay then rd_mult = 1.15 end
+
+    if talented.heartbreaker then
+        if aura_env.targetCount >= 2 and aura_env.targetCount <= 5 then
+            runic_power_cap = 15 + (aura_env.targetCount * 3)
+        elseif aura_env.targetCount >= 6 then
+            runic_power_cap = 30
+        end
+    end
+
+     -- Factor RD multiplier to whatever RP cap we calculated and subtract from max RP
+    runic_power_cap = runic_power_max - runic_power_cap * rd_mult
+
+    -- Easy booleans for how many death strikes we can pump out, we can actually do three with Ossuary but no need in this APL
+    if (buffRemains.ossuary > 0 and runic_power >= 40) or runic_power >= 45 then death_strike_available = true end
+    if (buffRemains.ossuary > 0 and runic_power >= 80) or runic_power >= 90 then two_death_strikes_available = true end
 
     -- Grab the expiration of Bone Shield aura
     local bone_shield_aura = select(7,UnitBuff("player",GetSpellInfo(195181))) or 0
@@ -143,7 +156,7 @@ function ()
 
     -- Cooldowns Enabled: below danger treshold (default: 55%)
     if WA_Redfellas_Rot_BDK_Def_CDs and health_percentage <= danger_treshold then
-        -- Vampiric Embrace if: player is below critical treshold  --OR--  RP for two Death Strikes
+        -- Vampiric Embrace if: player is below critical treshold (default: 25%) --OR--  RP for two Death Strikes
         if ready( 'vampiric_blood' ) and health_percentage <= critical_treshold or two_death_strikes_available then rec( 'vampiric_blood' ) end
         -- Death Strike if: VE is active  --OR--  VE is on cooldown
         if ready( 'death_strike' ) and death_strike_available and (buffRemains.vampiric_blood > 0 or cooldowns.vampiric_blood > 0) then rec( 'death_strike' ) end
@@ -162,7 +175,6 @@ function ()
         if ready( 'death_strike' ) and death_strike_available then rec( 'death_strike' ) end
     end
 
-
     -- SELFHEALS IF: Will not overheal
     -- Consumption if: Artifact equipped
     if artifact_weapon and WA_Redfellas_Rot_BDK_Def_CDs and  ready( 'consumption') and missing_health_percentage >= consumption_heal then rec( 'consumption' ) end
@@ -170,7 +182,6 @@ function ()
     if talented.blooddrinker and WA_Redfellas_Rot_BDK_Def_CDs and ready( 'blooddrinker' ) and missing_health_percentage >= blooddrinker_heal then rec( 'blooddrinker' ) end
     -- Death Strike if: not banking for Bonestorm
     if (not talented.bonestorm or (WA_Redfellas_Rot_BDK_Off_CDs and cooldowns.bonestorm > 0)) and ready( 'death_strike' ) and health_percentage > danger_treshold and missing_health_percentage >= ds_heal then rec( 'death_strike' ) end
-
 
     -- Blood Boil if: Blood Plague missing
     if ready( 'blood_boil' ) and charges.blood_boil >= 0 and debuffRemains.blood_plague == 0 then rec( 'blood_boil' ) end
@@ -182,24 +193,25 @@ function ()
     if WA_Redfellas_Rot_BDK_Off_CDs and ready( 'dancing_rune_weapon' ) and bone_shield_stacks <= 4 and runes >= 2 then rec( 'dancing_rune_weapon' ) end
     -- Marrowrend if: missing Bone Shield
     if ready( 'marrowrend' ) and bone_shield_stacks == 0 and runes >= 2 then rec( 'marrowrend') end
-    -- Bonestorm if: CD usage enabled, talented and 100+ RP
+    -- Bonestorm if: CD usage enabled, talented and 100+ RP, max RP BS will consume is 100
     if WA_Redfellas_Rot_BDK_Off_CDs and talented.bonestorm and ready( 'bonestorm' ) and runic_power >= 100 then rec( 'bonestorm' ) end
     -- Death Strike if: Need to spend RP and not talented Bonestorm / Bonestorm on CD
-    if (not talented.bonestorm or (WA_Redfellas_Rot_BDK_Off_CDs and cooldowns.bonestorm > 0)) and ready( 'death_strike' ) and death_strike_available and runic_power >= rp_cap_warning then rec( 'death_strike' ) end
+    if (not talented.bonestorm or (WA_Redfellas_Rot_BDK_Off_CDs and cooldowns.bonestorm > 0)) and ready( 'death_strike' ) and death_strike_available and runic_power >= runic_power_cap then rec( 'death_strike' ) end
     -- Marrowrend if: Need 6 or more BS stacks and DRW active
     if ready( 'marrowrend' ) and buffRemains.dancing_rune_weapon > 0 and bone_shield_stacks <= 4 and runes >= 2 then rec( 'marrowrend') end
 
     -- If standing in DnD with Rapid Decomposition
     if talented.rapid_decomposition and buffRemains.death_and_decay > 0 then
-        -- Fighting one target, keeping up Ossuary is optimal
-        if talented.ossuary and aura_env.targetCount == 1 and ready( 'marrowrend' ) and bone_shield_stacks <= 5 and runes >= 2 then rec( 'marrowrend') end
-        if talented.ossuary and aura_env.targetCount == 1 and ready( 'heart_strike' ) and bone_shield_stacks >= 6 and runes >= 1 then rec( 'heart_strike') end
-        -- More than 1 target, HS will gain +3 (from main target) and +6 RP per cleave hit so using HS even if under 5 Bone Shield stacks is a net RP gain
-        if talented.ossuary and aura_env.targetCount >= 2 and ready( 'marrowrend' ) and bone_shield_stacks <= 2 and runes >= 2 then rec( 'marrowrend') end
-        if talented.ossuary and aura_env.targetCount >= 2 and ready( 'heart_strike' ) and bone_shield_stacks >= 3 and runes >= 1 then rec( 'heart_strike') end
+        -- Fighting one target, keeping up Ossuary is optimal, but let's still use as many runes as we can
+        if talented.ossuary and aura_env.targetCount == 1 and ready( 'marrowrend' ) and bone_shield_stacks <= 6 and spend_runes then rec( 'marrowrend') end
+        if talented.ossuary and aura_env.targetCount == 1 and ready( 'heart_strike' ) and bone_shield_stacks >= 7 and spend_runes then rec( 'heart_strike') end
+        -- At 5 mobs, the two Heart Strikes will get you +24 RP (+15 Bonus RP per Heart Strike vs 5 mobs, -3 RP from losing a Heart Strike vs. one mob later.)
+        -- At 4 mobs, +18 RP, at 3 mobs, +12 RP, at 2 mobs, +6 RP
+        if talented.ossuary and aura_env.targetCount >= 2 and ready( 'marrowrend' ) and bone_shield_stacks <= 4 and spend_runes then rec( 'marrowrend') end
+        if talented.ossuary and aura_env.targetCount >= 2 and ready( 'heart_strike' ) and bone_shield_stacks >= 5 and spend_runes then rec( 'heart_strike') end
     -- Regular rune spending: stay below 4 ready runes, but keep near it for next DnD
     else
-        if ready( 'marrowrend' ) and bone_shield_stacks <= 6 and runes >= 2 then rec( 'marrowrend') end
+        if ready( 'marrowrend' ) and bone_shield_stacks <= 6 and spend_runes then rec( 'marrowrend') end
         if ready( 'heart_strike' ) and bone_shield_stacks >= 7 and spend_runes then rec( 'heart_strike') end
     end
 
@@ -213,8 +225,6 @@ function ()
     ---------------
     -- APL END --
     ---------------
-
-
 
     if aura_env.timeToReady < 5 then
         if aura_env.showCooldownRing then
