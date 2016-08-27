@@ -187,18 +187,94 @@ function aura_env.health_percentage()
     return math.ceil( (UnitHealth("player") / UnitHealthMax("player") * 100) )
 end
 
+
+
+function aura_env.get_power_info(power_id,artifact_id)
+   if not power_id then return false end
+   local power_info
+
+   if not artifact_id then
+      if HasArtifactEquipped() then
+         local item_id = GetInventoryItemID("player", 16)
+         if artifact[item_id][power_id] then
+            power_info = artifact[item_id][power_id]
+         end
+      end
+   elseif artifact[artifact_id] then
+      if artifact[artifact_id][power_id] then
+         power_info = artifact[artifact_id][power_id]
+      end
+   end
+
+   return power_info or false
+end
+
+
+function aura_env.get_artifact_trait_rank(trait_id)
+    local info = aura_env.get_power_info(trait_id)
+    if info then
+        return select(3, info)
+    else
+        return 0
+    end
+end
+
+function aura_env.get_artifact_multiplier()
+    local devour_souls_rank = aura_env.get_artifact_trait_rank(1233)
+    local tormented_souls_rank = aura_env.get_artifact_trait_rank(1328)
+    -- Devour souls multiplier is 3% * rank
+    local multiplier = 1 + devour_souls_rank * 0.03
+    -- Tormented Souls multiplier is 10% * rank
+    multiplier = multiplier * (1 + tormented_souls_rank * 0.1)
+    return multiplier
+end
+
+function aura_env.get_external_multiplier()
+    local multiplier = 1
+    -- Scale heal with priest guardian spirit
+    if UnitAura("player", 47788) then multiplier = multiplier * 1.4 end
+    -- Scale heal with priest divine hymn
+    if UnitAura("player", 64844) then multiplier = multiplier * 1.1 end
+
+    return multiplier
+end
+
+-- by MightBeGiant originally
 function aura_env.soul_cleave_heal()
-    local maxHealth = UnitHealthMax("player")
-    local b, p, n = UnitAttackPower("player")
-    local ap = b + p + n
-    local baseHeal = ap * 5
-    local power = UnitPower("player")
-    if power > 60 then power = 60 end
+    local max_health = UnitHealthMax("player")
+    local pain = UnitPower("player")
+    if pain < 30 then return 0 end
 
-    local heal = (power / 60) * 2 * baseHeal + (GetSpellCount(228477)) * 2.5 * ap
-    local healPercent = math.floor( heal / maxHealth * 100 )
+    -- Stat multipliers
+    local ap_base, ap_pos, ap_neg = UnitAttackPower("player")
+    local AP = ap_base + ap_pos + ap_neg
 
-    return heal
+    local versatility = GetCombatRatingBonus(CR_VERSATILITY_DAMAGE_DONE) + GetVersatilityBonus(CR_VERSATILITY_DAMAGE_DONE)
+    local vers_multi = 1 + (versatility / 100)
+
+    -- Artifact trait multipliers
+    local artifact_multi = aura_env.get_artifact_multiplier()
+
+    -- External buff multipliers
+    local external_multi = aura_env.get_external_multiplier()
+
+    -- Soul Fragments healing
+    local fragments = select(4, UnitBuff("player", GetSpellInfo(203981))) or 0
+
+    local single_frag_heal = (2.5 * AP) * vers_multi
+    local total_frag_heal = single_frag_heal * fragments
+
+    -- Soul Cleave healing
+
+    local base_heal = 2 * AP * 5.5
+
+    local cleave_heal = base_heal * vers_multi * (min(60, pain) / 60) * artifact_multi * external_multi
+
+    -- Total healing
+    local total_heal = (total_frag_heal + cleave_heal)
+    local heal_percent = math.floor( total_heal / max_health * 100 )
+
+    return heal_percent
 end
 
 function aura_env.get_unit_aura_value(aura, valueType, unit, sourceUnit)

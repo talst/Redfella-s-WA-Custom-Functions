@@ -249,7 +249,7 @@ function aura_env.time_to_x_runes(runes_required)
     end
 end
 
--- attempt to predict consumption heal -- it's close not 100% accurate
+-- attempt to predict consumption heal -- it's close not 100% accurate @TODO make it better (post Legion launch tbh)
 function aura_env.consumption_heal()
     -- max hp
     local health = UnitHealthMax("player")
@@ -257,7 +257,7 @@ function aura_env.consumption_heal()
     local apBase, apPos, apNeg = UnitAttackPower("player")
     local attack_power = apBase + apPos + apNeg;
     -- vers with possible bonus like tank ring
-    local vers = 1 + ((GetCombatRatingBonus(29) + GetVersatilityBonus(30)) / 100)
+    local vers = aura_env.get_versatility_multiplier()
     -- from traits, need to calculate this for real later
     local artifact_trait = 1.05
     -- hotfix aura http://www.wowhead.com/spell=137008/blood-death-knight
@@ -289,19 +289,81 @@ function aura_env.consumption_heal()
     return consumption_heal
 end
 
+function aura_env.get_external_multiplier()
+    local multiplier = 1
+    -- Scale heal with priest guardian spirit
+    if UnitAura("player", 47788) then multiplier = multiplier * 1.4 end
+    -- Scale heal with priest divine hymn
+    if UnitAura("player", 64844) then multiplier = multiplier * 1.1 end
+
+    return multiplier
+end
+
+function aura_env.get_power_info(power_id,artifact_id)
+   if not power_id then return false end
+   local power_info
+
+   if not artifact_id then
+      if HasArtifactEquipped() then
+         local item_id = GetInventoryItemID("player", 16)
+         if artifact[item_id][power_id] then
+            power_info = artifact[item_id][power_id]
+         end
+      end
+   elseif artifact[artifact_id] then
+      if artifact[artifact_id][power_id] then
+         power_info = artifact[artifact_id][power_id]
+      end
+   end
+
+   return power_info or false
+end
+
+function aura_env.get_artifact_trait_rank(trait_id)
+    local info = aura_env.get_power_info(trait_id)
+    if info then
+        return select(3, info)
+    else
+        return 0
+    end
+end
+
+function aura_env.get_artifact_modifier()
+    local vampiric_fangs_rank = aura_env.get_artifact_trait_rank(192544)
+    -- Vampiric Fangs modifier is +5% to Vampiric Blood per rank
+    return vampiric_fangs_rank * 0.05
+end
+
+local vampiric_blood = 1.3 + aura_env.get_artifact_modifier()
+local vampric_blood_multiplier = UnitBuff("player", GetSpellInfo(55233)) and vampiric_blood or 1
+
+function aura_env.get_versatility_multiplier()
+    return 1 + ((GetCombatRatingBonus(CR_VERSATILITY_DAMAGE_DONE) + GetVersatilityBonus(CR_VERSATILITY_DAMAGE_DONE)) / 100)
+end
+
 -- Alarog's DS predictor hookup, un-localized
 function aura_env.death_strike_heal()
+    local heal, heal_scaled, heal_percent
+    local health = UnitHealthMax("player")
     local dmg = 0
-    local healMult = 1
-    local heal, health, healScaled, healPercent
-    local deathStrikeWindow = 5
-    local latencyEstimate = 0.2
+    local death_strike_window = 5
+    local latency_estimate = 0.1
 
+    -- Vamp Blood modified by artifact
+    local vamp = 1.3 + aura_env.get_artifact_modifier()
+    -- If affected by Vamp Blood
+    local vamp_multi = UnitBuff("player", GetSpellInfo(55233)) and vamp or 1
+    -- Possible priest buffs
+    local external_multi = aura_env.get_external_multiplier()
+    -- Vers with possible modifiers like Tank ring
+    local vers_multi = aura_env.get_versatility_multiplier()
+
+    -- dmg taken in last 5 with Alarogs globals
     deathStrikeDamageHistory = deathStrikeDamageHistory or {}
     deathStrikeDamageTimeHistory = deathStrikeDamageTimeHistory or {}
 
     if deathStrikeDamageTimeHistory[1] ~= nil then
-        if time() > (deathStrikeDamageTimeHistory[1] + deathStrikeWindow - latencyEstimate) then
+        if time() > (deathStrikeDamageTimeHistory[1] + death_strike_window - latency_estimate) then
             table.remove(deathStrikeDamageHistory,1)
             table.remove(deathStrikeDamageTimeHistory,1)
         end
@@ -311,28 +373,18 @@ function aura_env.death_strike_heal()
         dmg = dmg + tonumber(v)
     end
 
+    -- Heal based on dmg taken and multipliers
     heal = dmg * 0.2
-    health = UnitHealthMax("player")
 
-    if (heal / health) < 0.07 then heal = health * 0.07 end
+    -- Account for minimum healing
+    if (heal / health) < 0.1 then
+      heal = health * 0.1 
+    end
 
-    -- Scale healing based on versatility
-    healMult = 1 + ((GetCombatRatingBonus(29) + GetVersatilityBonus(30)) / 100) -- Vers with possible modifiers like Tank ring
-
-    -- Scale heal estimate when Vampiric Blood is active
-    if UnitAura("player", 55233) then healMult = healMult * 1.3 end
-    -- Scale heal with priest guardian spirit
-    if UnitAura("player", 47788) then healMult = healMult * 1.4 end
-    -- Scale heal with priest divine hymn
-    if UnitAura("player", 64844) then healMult = healMult * 1.1 end
-
-    heal = heal * healMult
-    if (heal / health) < 0.1 then heal = health * 0.1 end
-
-    healScaled = math.floor( (heal+500) / 1000 )
-    healPercent = math.floor( heal / health * 100 )
-
-    return healPercent
+    heal = heal * vers_multi * vamp_multi * external_multi
+    heal_scaled = math.floor((heal + 500) / 1000)
+    heal_percent = math.floor(heal / health * 100)
+    return heal_percent
 end
 
 
@@ -342,16 +394,17 @@ function aura_env.blooddrinker_heal()
     local apBase, apPos, apNeg = UnitAttackPower("player")
     local attack_power = apBase + apPos + apNeg;
     local bd_multiplier = 12.93; -- Blood Drinker
-    local healMult = 1 + ((GetCombatRatingBonus(29) + GetVersatilityBonus(30)) / 100) -- Vers with possible modifiers like Tank ring
 
-    -- Scale heal with Vampiric Blood
-    if UnitAura("player", 55233) then healMult = healMult * 1.3 end
-    -- Scale heal with priest guardian spirit
-    if UnitAura("player", 47788) then healMult = healMult * 1.4 end
-    -- Scale heal with priest divine hymn
-    if UnitAura("player", 64844) then healMult = healMult * 1.1 end
+    -- Vamp Blood modified by artifact
+    local vamp = 1.3 + aura_env.get_artifact_modifier()
+    -- If affected by Vamp Blood
+    local vamp_multi = UnitBuff("player", GetSpellInfo(55233)) and vamp or 1
+    -- Possible priest buffs
+    local external_multi = aura_env.get_external_multiplier()
+    -- Vers with possible modifiers like Tank ring
+    local vers_multi = aura_env.get_versatility_multiplier()
 
-    local heal = attack_power * bd_multiplier * healMult
+    local heal = attack_power * bd_multiplier * vers_multi * vamp_multi * external_multi
     local heal_percent = math.floor( heal / health * 100 )
 
     return heal_percent
