@@ -299,44 +299,6 @@ function aura_env.get_external_multiplier()
     return multiplier
 end
 
-function aura_env.get_power_info(power_id,artifact_id)
-   if not power_id then return false end
-   local power_info
-
-   if not artifact_id then
-      if HasArtifactEquipped() then
-         local item_id = GetInventoryItemID("player", 16)
-         if artifact[item_id][power_id] then
-            power_info = artifact[item_id][power_id]
-         end
-      end
-   elseif artifact[artifact_id] then
-      if artifact[artifact_id][power_id] then
-         power_info = artifact[artifact_id][power_id]
-      end
-   end
-
-   return power_info or false
-end
-
-function aura_env.get_artifact_trait_rank(trait_id)
-    local info = aura_env.get_power_info(trait_id)
-    if info then
-        return select(3, info)
-    else
-        return 0
-    end
-end
-
-function aura_env.get_artifact_modifier()
-    local vampiric_fangs_rank = aura_env.get_artifact_trait_rank(192544)
-    -- Vampiric Fangs modifier is +5% to Vampiric Blood per rank
-    return vampiric_fangs_rank * 0.05
-end
-
-local vampiric_blood = 1.3 + aura_env.get_artifact_modifier()
-local vampric_blood_multiplier = UnitBuff("player", GetSpellInfo(55233)) and vampiric_blood or 1
-
 function aura_env.get_versatility_multiplier()
     return 1 + ((GetCombatRatingBonus(CR_VERSATILITY_DAMAGE_DONE) + GetVersatilityBonus(CR_VERSATILITY_DAMAGE_DONE)) / 100)
 end
@@ -349,10 +311,30 @@ function aura_env.death_strike_heal()
     local death_strike_window = 5
     local latency_estimate = 0.1
 
-    -- Vamp Blood modified by artifact
-    local vamp = 1.3 + aura_env.get_artifact_modifier()
-    -- If affected by Vamp Blood
-    local vamp_multi = UnitBuff("player", GetSpellInfo(55233)) and vamp or 1
+    --Vampiric Blood
+    --check artifact traits
+    local currentRank = 0
+    local loaded = IsAddOnLoaded("LibArtifactData-1.0") or LoadAddOn("LibArtifactData-1.0")
+    if loaded then
+        aura_env.LAD = aura_env.LAD or LibStub("LibArtifactData-1.0")
+        if not aura_env.LAD:GetActiveArtifactID() then
+            aura_env.LAD:ForceUpdate()
+        end
+        local _, traits = aura_env.LAD:GetArtifactTraits()
+        if traits then
+            for _,v in ipairs(traits) do
+                if v.spellID == 192544 then
+                    currentRank = v.currentRank
+                    break
+                end
+            end
+        end
+    else
+        print("You have not installed LibArtifactData-1.0, it is required for this WeakAura to function properly. Please DL it from https://www.wowace.com/addons/libartifactdata-1-0/");
+    end
+    local trait = 1.3 + 0.05 * currentRank
+    local vamp_multi = UnitBuff("player", GetSpellInfo(55233)) and trait or 1
+
     -- Possible priest buffs
     local external_multi = aura_env.get_external_multiplier()
     -- Vers with possible modifiers like Tank ring
@@ -378,7 +360,7 @@ function aura_env.death_strike_heal()
 
     -- Account for minimum healing
     if (heal / health) < 0.1 then
-      heal = health * 0.1 
+      heal = health * 0.1
     end
 
     heal = heal * vers_multi * vamp_multi * external_multi
@@ -395,10 +377,28 @@ function aura_env.blooddrinker_heal()
     local attack_power = apBase + apPos + apNeg;
     local bd_multiplier = 12.93; -- Blood Drinker
 
-    -- Vamp Blood modified by artifact
-    local vamp = 1.3 + aura_env.get_artifact_modifier()
-    -- If affected by Vamp Blood
-    local vamp_multi = UnitBuff("player", GetSpellInfo(55233)) and vamp or 1
+    --Vampiric Blood
+    --check artifact traits
+    local currentRank = 0
+    local loaded = IsAddOnLoaded("LibArtifactData-1.0") or LoadAddOn("LibArtifactData-1.0")
+    if loaded then
+        aura_env.LAD = aura_env.LAD or LibStub("LibArtifactData-1.0")
+        if not aura_env.LAD:GetActiveArtifactID() then
+            aura_env.LAD:ForceUpdate()
+        end
+        local _, traits = aura_env.LAD:GetArtifactTraits()
+        if traits then
+            for _,v in ipairs(traits) do
+                if v.spellID == 192544 then
+                    currentRank = v.currentRank
+                    break
+                end
+            end
+        end
+    end
+    local trait = 1.3 + 0.05 * currentRank
+    local vamp_multi = UnitBuff("player", GetSpellInfo(55233)) and trait or 1
+
     -- Possible priest buffs
     local external_multi = aura_env.get_external_multiplier()
     -- Vers with possible modifiers like Tank ring

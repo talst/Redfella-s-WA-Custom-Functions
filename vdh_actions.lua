@@ -188,40 +188,36 @@ function aura_env.health_percentage()
 end
 
 
-
-function aura_env.get_power_info(power_id,artifact_id)
-   if not power_id then return false end
-   local power_info
-
-   if not artifact_id then
-      if HasArtifactEquipped() then
-         local item_id = GetInventoryItemID("player", 16)
-         if artifact[item_id][power_id] then
-            power_info = artifact[item_id][power_id]
-         end
-      end
-   elseif artifact[artifact_id] then
-      if artifact[artifact_id][power_id] then
-         power_info = artifact[artifact_id][power_id]
-      end
-   end
-
-   return power_info or false
-end
-
-
-function aura_env.get_artifact_trait_rank(trait_id)
-    local info = aura_env.get_power_info(trait_id)
-    if info then
-        return select(3, info)
-    else
-        return 0
-    end
-end
-
 function aura_env.get_artifact_multiplier()
-    local devour_souls_rank = aura_env.get_artifact_trait_rank(1233)
-    local tormented_souls_rank = aura_env.get_artifact_trait_rank(1328)
+    local devour_souls_rank = 0
+    local tormented_souls_rank = 0
+
+    local loaded = IsAddOnLoaded("LibArtifactData-1.0") or LoadAddOn("LibArtifactData-1.0")
+    if loaded then
+        aura_env.LAD = aura_env.LAD or LibStub("LibArtifactData-1.0")
+
+        if not aura_env.LAD:GetActiveArtifactID() then
+            aura_env.LAD:ForceUpdate()
+        end
+
+        local _, traits = aura_env.LAD:GetArtifactTraits()
+        if traits then
+            for _,v in ipairs(traits) do
+                if v.spellID == 212821 then
+                    devour_souls_rank = v.currentRank
+                    break
+                end
+                if v.spellID == 216695 then
+                    tormented_souls_rank = v.currentRank
+                    break
+                end
+            end
+        end
+    else
+        print("You have not installed LibArtifactData-1.0, it is required for this WeakAura to function properly. Please DL it from https://www.wowace.com/addons/libartifactdata-1-0/");
+    end
+
+
     -- Devour souls multiplier is 3% * rank
     local multiplier = 1 + devour_souls_rank * 0.03
     -- Tormented Souls multiplier is 10% * rank
@@ -262,8 +258,10 @@ function aura_env.soul_cleave_heal()
     local fragments = select(4, UnitBuff("player", GetSpellInfo(203981))) or 0
 
     local single_frag_heal = (2.5 * AP) * vers_multi
+    print("single frag", single_frag_heal)
     local total_frag_heal = single_frag_heal * fragments
 
+    print("frags", fragments, total_frag_heal)
     -- Soul Cleave healing
 
     local base_heal = 2 * AP * 5.5
