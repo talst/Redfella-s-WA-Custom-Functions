@@ -112,9 +112,13 @@ function ()
     local pain_cap = 70
 
     local wait_for_priority_abilities = false
-    if cooldowns.immolation_aura < 0.5 or (talented.felblade and cooldowns.felblade < 0.5) then
-        wait_for_priority_abilities = true
-    end
+
+    if cooldowns.immolation_aura < 0.5 then wait_for_priority_abilities = true end
+    if talented.felblade and cooldowns.felblade < 0.5 then wait_for_priority_abilities = true end
+    if talented.fel_eruption and cooldowns.fel_eruption < 0.5 then wait_for_priority_abilities = true end
+    if aura_env.targetCount >= 2 and cooldowns.sigil_of_flame < 0.5 then wait_for_priority_abilities = true end
+    if health_percentage <= danger_treshold and cooldowns.fel_devastation < 0.5 then wait_for_priority_abilities = true end
+    if health_percentage <= danger_treshold and cooldowns.fiery_brand < 0.5 then wait_for_priority_abilities = true end
 
     ---------------
     -- APL START --
@@ -132,10 +136,10 @@ function ()
             if artifact_weapon and ready( 'soul_carver' ) and health_percentage <= 70 and soul_fragments == 0 then rec( 'soul_carver' ) end
 
             -- Demon Spikes charge if: health is below 80% and capped or nearly capped on DS charges
-            if ready( 'demon_spikes' ) and chargeCt('demon_spikes') >= 1.70 and health_percentage <= 80 then rec( 'demon_spikes' ) end
+            if ready( 'demon_spikes' ) and chargeCt('demon_spikes') >= 1.70 and health_percentage <= 85 then rec( 'demon_spikes' ) end
 
             -- Fiery Brand if: health is below 65
-            if buffRemains.demon_spikes == 0 and ready( 'fiery_brand' ) and health_percentage <= 75 then rec( 'fiery_brand' ) end
+            if buffRemains.demon_spikes == 0 and buffRemains.metamorphosis == 0 and ready( 'fiery_brand' ) and health_percentage <= 85 then rec( 'fiery_brand' ) end
 
             -- Below 30% hp
             if health_percentage <= critical_treshold then
