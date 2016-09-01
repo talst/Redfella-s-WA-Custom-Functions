@@ -47,11 +47,10 @@ function aura_env.setupBinds()
     SetOverrideBindingClick( aura_env.keyhandler, true, aura_env.defCooldownsToggle, aura_env.id.."_Keyhandler", "defCooldowns" )
 
     print("|cFF00FFFFRedfella's Rotation Helper|r:  Keybinds are now active.")
-    print("Enable/Disable - |cFFFFD100" .. aura_env.enabledToggle .. "|r.")
-    print("Toggle Defensive Cooldowns - |cFFFFD100" .. aura_env.defCooldownsToggle .. "|r.")
-    print("Toggle Offensive Cooldowns - |cFFFFD100" .. aura_env.offCooldownsToggle .. "|r.")
+    print("Enable/Disable - |cFFFFD100" .. aura_env.enabledToggle .. "|r. Rotation: " .. tostring(WA_Redfellas_Rot_VDH_Enabled) .. ".")
+    print("Toggle Defensive Cooldowns - |cFFFFD100" .. aura_env.defCooldownsToggle .. "|r. Defensives: " .. tostring(WA_Redfellas_Rot_VDH_Def_CDs) .. ".")
+    print("Toggle Offensive Cooldowns - |cFFFFD100" .. aura_env.offCooldownsToggle .. "|r. Offensives: " .. tostring(WA_Redfellas_Rot_VDH_Off_CDs) .. ".")
     print("You can *carefully* change these keybinds in the " .. aura_env.id .. " WeakAura on the Actions Tab, On Init, Expand Text Editor and see lines 11 to 13." )
-
     aura_env.bindsInitialized = true
 
 end
@@ -157,7 +156,9 @@ end
 aura_env.buffRemains = {}
 
 aura_env.debuffs = {
-    frailty = 224509
+    frailty = 224509,
+    fiery_brand = 204022,
+    sigil_of_flame = 204598
 }
 
 aura_env.debuffNames = {}
@@ -225,6 +226,28 @@ function aura_env.get_artifact_multiplier()
     return multiplier
 end
 
+function aura_env.get_trait_rank(trait_id)
+    local rank = 0
+    local loaded = IsAddOnLoaded("LibArtifactData-1.0") or LoadAddOn("LibArtifactData-1.0")
+    if loaded then
+        aura_env.LAD = aura_env.LAD or LibStub("LibArtifactData-1.0")
+        if not aura_env.LAD:GetActiveArtifactID() then
+            aura_env.LAD:ForceUpdate()
+        end
+        local _, traits = aura_env.LAD:GetArtifactTraits()
+        if traits then
+            for _,v in ipairs(traits) do
+                if v.spellID == trait_id then
+                    rank = v.currentRank
+                    break
+                end
+            end
+        end
+    end
+
+    return rank
+end
+
 function aura_env.get_external_multiplier()
     local multiplier = 1
     -- Scale heal with priest guardian spirit
@@ -258,12 +281,11 @@ function aura_env.soul_cleave_heal()
     local fragments = select(4, UnitBuff("player", GetSpellInfo(203981))) or 0
 
     local single_frag_heal = (2.5 * AP) * vers_multi
-    print("single frag", single_frag_heal)
+
     local total_frag_heal = single_frag_heal * fragments
 
-    print("frags", fragments, total_frag_heal)
-    -- Soul Cleave healing
 
+    -- Soul Cleave healing
     local base_heal = 2 * AP * 5.5
 
     local cleave_heal = base_heal * vers_multi * (min(60, pain) / 60) * artifact_multi * external_multi

@@ -34,10 +34,14 @@ function ()
 
     local soul_fragments = aura_env.soul_fragments()
     local pain = UnitPower("player")
+    local pain_max = UnitPowerMax("player")
+    local pain_deficit = pain_max - pain
+    local pain_deficit_limit = 25
     local health_percentage = math.ceil( (UnitHealth("player") / UnitHealthMax("player") * 100) )
     local missing_health_percentage = 100 - health_percentage
     local soul_cleave_heal = aura_env.soul_cleave_heal()
     local in_combat = aura_env.in_combat
+    local fiery_demise_rank = aura_env.get_trait_rank(212817);
 
     for k,v in pairs( targets ) do
         if now - v > aura_env.targetWipeInterval then
@@ -108,13 +112,9 @@ function ()
     local rec = aura_env.rec
     local artifact_weapon = IsEquippedItem(128832)
 
-    -- Set pain cap for when to Soul Cleave even if it overheals
-    local pain_cap = 70
-
     local wait_for_priority_abilities = false
-
-    if cooldowns.immolation_aura < 0.5 then wait_for_priority_abilities = true end
-    if talented.felblade and cooldowns.felblade < 0.5 then wait_for_priority_abilities = true end
+    if cooldowns.immolation_aura < 0.5 and pain_deficit >= 10 then wait_for_priority_abilities = true end
+    if talented.felblade and cooldowns.felblade < 0.5 and pain_deficit >= pain_deficit_limit then wait_for_priority_abilities = true end
     if talented.fel_eruption and cooldowns.fel_eruption < 0.5 then wait_for_priority_abilities = true end
     if aura_env.targetCount >= 2 and cooldowns.sigil_of_flame < 0.5 then wait_for_priority_abilities = true end
     if health_percentage <= danger_treshold and cooldowns.fel_devastation < 0.5 then wait_for_priority_abilities = true end
@@ -125,65 +125,205 @@ function ()
     ---------------
 
     if not in_combat then
-        if ready( 'sigil_of_flame' ) then rec( 'sigil_of_flame' ) end
-        if ready( 'infernal_strike' ) and chargeCt('infernal_strike') >= 1 then rec( 'infernal_strike' ) end
-        if ready( 'throw_glaive' ) then rec( 'throw_glaive' ) end
-        if ready( 'shear' ) then rec( 'shear' ) end
+        -- Sigil of Flame
+        if ready( 'sigil_of_flame' )
+        then rec( 'sigil_of_flame' ) end
+
+        -- Infernal Strike
+        if ready( 'infernal_strike' )
+            and chargeCt('infernal_strike') >= 1
+        then rec( 'infernal_strike' ) end
+
+        -- Throw Glaive
+        if ready( 'throw_glaive' )
+        then rec( 'throw_glaive' ) end
+
+        -- Just so we don't ever get a green icon
+        if ready( 'shear' )
+        then rec( 'shear' ) end
     else
         -- Defensive cooldowns are toggled on
         if WA_Redfellas_Rot_VDH_Def_CDs then
-            -- Soul Carver if: health is below 70% and 0 fragments
-            if artifact_weapon and ready( 'soul_carver' ) and health_percentage <= 70 and soul_fragments == 0 then rec( 'soul_carver' ) end
+            -- Soul Carver
+            if ready( 'soul_carver' )
+                and artifact_weapon
+                and health_percentage <= 75
+                and soul_fragments == 0
+            then rec( 'soul_carver' ) end
 
-            -- Demon Spikes charge if: health is below 80% and capped or nearly capped on DS charges
-            if ready( 'demon_spikes' ) and chargeCt('demon_spikes') >= 1.70 and health_percentage <= 85 then rec( 'demon_spikes' ) end
+            -- Demon Spikes
+            if ready( 'demon_spikes' )
+                and chargeCt('demon_spikes') >= 1.75
+                and buffRemains.demon_spikes == 0
+                and pain >= 20
+                and health_percentage <= 85
+            then rec( 'demon_spikes' ) end
 
-            -- Fiery Brand if: health is below 65
-            if buffRemains.demon_spikes == 0 and buffRemains.metamorphosis == 0 and ready( 'fiery_brand' ) and health_percentage <= 85 then rec( 'fiery_brand' ) end
+            -- Fiery Brand
+            if ready( 'fiery_brand' )
+                and buffRemains.demon_spikes == 0
+                and buffRemains.metamorphosis == 0
+                and buffRemains.soul_barrier == 0
+                and chargeCt('demon_spikes') < 1
+                and health_percentage <= 85
+            then rec( 'fiery_brand' ) end
 
-            -- Below 30% hp
-            if health_percentage <= critical_treshold then
-                -- Meta if: health drops below 25 and we don't have soul barrier active
-                if ready( 'metamorphosis' ) and buffRemains.soul_barrier == 0 then rec( 'metamorphosis' ) end
-            end
+            -- Meta if: health drops below critical treshold (30%)
+            if ready( 'metamorphosis' )
+                and health_percentage <= critical_treshold
+            then rec( 'metamorphosis' ) end
 
-            -- Below 55% hp
+            -- Below danger treshold (55%) hp
             if health_percentage <= danger_treshold then
-                -- Fel Devastation if: we can
-                if talented.fel_devastation and ready( 'fel_devastation' ) then rec( 'fel_devastation' ) end
-                -- Soul Barrier if: we can
-                if talented.soul_barrier and ready( 'soul_barrier' ) then rec( 'soul_barrier' ) end
-                -- Soul Cleave if: we can
-                if ready( 'soul_cleave' ) then rec( 'soul_cleave' ) end
-                -- Fiery Brand if: we can
-                if ready( 'fiery_brand' ) then rec( 'fiery_brand' ) end
-                -- Generate Pain
-                if ready( 'immolation_aura' ) then rec( 'immolation_aura' ) end
-                if talented.felblade and ready( 'felblade' ) and pain <= 75 then rec( 'felblade' ) end
-                if ready( 'shear' ) and not wait_for_priority_abilities then rec( 'shear' ) end
+                -- Fel Devastation
+                if ready( 'fel_devastation' )
+                    and talented.fel_devastation
+                    and pain >= 30
+                then rec( 'fel_devastation' ) end
+
+                -- Soul Barrier
+                if ready( 'soul_barrier' )
+                    and talented.soul_barrier
+                then rec( 'soul_barrier' ) end
+
+                -- Soul Cleave
+                if ready( 'soul_cleave' )
+                    and pain >= 60
+                then rec( 'soul_cleave' ) end
+
+                -- Fiery Brand
+                if ready( 'fiery_brand' )
+                    and buffRemains.demon_spikes == 0
+                    and buffRemains.metamorphosis == 0
+                    and buffRemains.soul_barrier == 0
+                then rec( 'fiery_brand' ) end
+
+                -- Generate Pain for healing instead of bothering with pure DPS abilities when in danger
+                if ready( 'immolation_aura' )
+                    and pain_deficit >= 15
+                then rec( 'immolation_aura' ) end
+
+                if ready( 'felblade' )
+                    and talented.felblade
+                    and pain_deficit >= pain_deficit_limit
+                then rec( 'felblade' ) end
+
+                if ready( 'shear' )
+                then rec( 'shear' ) end
             end
         end
 
-        -- Soul Cleave if: healing required, at 60 pain and it will not overheal
-        if ready( 'soul_cleave' ) and pain >= 60 and soul_cleave_heal < missing_health_percentage then rec( 'soul_cleave' ) end
-        -- Sigil of Flame if: fighting multiple targets
-        if ready( 'sigil_of_flame' ) and aura_env.targetCount >= 2 then rec( 'sigil_of_flame' ) end
-        -- Immolation Aura if: not on CD
-        if ready( 'immolation_aura' ) then rec( 'immolation_aura' ) end
-        -- Spirit Bomb if: target not affected by frailty and we have fragments
-        if talented.spirit_bomb and ready( 'spirit_bomb' ) and debuffRemains.frailty == 0 and soul_fragments >= 1 then rec( 'spirit_bomb' ) end
-        -- Fracture if: single target, talented fracture and at pain softcap without needing healing
-        if aura_env.targetCount == 1 and talented.fracture and ready( 'fracture' ) and pain >= pain_cap then rec( 'fracture' ) end
-        -- Soul Cleave if: multitarget -- OR -- not talented fracture and at pain softcap without needing healing
-        if (not talented.fracture or aura_env.targetCount > 1) and ready( 'soul_cleave' ) and pain >= pain_cap then rec( 'soul_cleave' ) end
-        -- Fel Eruption if: talented
-        if talented.fel_eruption and ready( 'fel_eruption' ) then rec( 'fel_eruption' ) end
-        -- Felblade if: will not cap pain
-        if talented.felblade and ready( 'felblade' ) and pain <= 75 then rec( 'felblade' ) end
-        -- Infernal_strike if: about to cap charges
-        if ready( 'infernal_strike' ) and chargeCt('infernal_strike') >= 1.85 then rec( 'infernal_strike' ) end
-        -- Shear if: nothing else to do
-        if ready( 'shear' ) and not wait_for_priority_abilities then rec( 'shear' ) end
+        -- Soul Cleave for healing
+        if ready( 'soul_cleave' )
+            and pain >= 60
+            and soul_cleave_heal <= missing_health_percentage
+        then rec( 'soul_cleave' ) end
+
+        -- Sigil of Flame
+        if ready( 'sigil_of_flame' )
+            and aura_env.targetCount >= 2
+        then rec( 'sigil_of_flame' ) end
+
+        -- Immolation Aura
+        if ready( 'immolation_aura' )
+            and pain_deficit >= 15
+        then rec( 'immolation_aura' ) end
+
+        -- Felblade
+        if ready( 'felblade' )
+            and talented.felblade
+            and pain_deficit >= pain_deficit_limit
+        then rec( 'felblade' ) end
+
+        -- Having these enabled is not optimal for proper defensive play
+        -- Enable only if outgearing content
+        if WA_Redfellas_Rot_VDH_Off_CDs then
+            -- Fiery Brand
+            --
+            -- Note: When using also Fel Devastation and Fiery Demise, recommend
+            -- only if we can combo FB+FD
+            --
+            -- Without Fiery Demise or Fel Devastation, just use on CD
+            if ready( 'fiery_brand' )
+                and (
+                    (fiery_demise_rank >= 1
+                        and talented.fel_devastation
+                        and cooldowns.fel_devastation == 0
+                        and pain >= 30
+                    )
+                    or (not talented.fel_devastation or fiery_demise_rank == 0)
+                )
+            then rec( 'fiery_brand' ) end
+
+            -- Fel Devastation
+            --
+            -- Note: Should be used on single target in combination with Fiery
+            -- Brand if you have any ranks in Fiery Demise artifact trait
+            --
+            -- Without Fiery Demise, just use on CD
+            if ready( 'fel_devastation' )
+                and talented.fel_devastation
+                and pain >= 30
+                and (
+                    (fiery_demise_rank >= 1 and aura_env.targetCount == 1 and debuffRemains.fiery_brand >= 2)
+                    or (fiery_demise_rank == 0 or aura_env.targetCount >= 2)
+                )
+            then rec( 'fel_devastation' ) end
+
+            -- Soul Carver
+            -- if ready( 'soul_carver' )
+            -- then rec( 'soul_carver' ) end
+        end
+
+        -- Spirit Bomb
+        if ready( 'spirit_bomb' )
+            and talented.spirit_bomb
+            and debuffRemains.frailty == 0
+            and soul_fragments >= 1
+        then rec( 'spirit_bomb' ) end
+
+        -- Fracture
+        if ready( 'fracture' )
+            and aura_env.targetCount == 1
+            and talented.fracture
+            and pain_deficit < pain_deficit_limit
+        then rec( 'fracture' ) end
+
+        -- Soul Cleave for DPS
+
+        if ready( 'soul_cleave' )
+            and ( not talented.fracture or aura_env.targetCount >= 2 )
+            and pain_deficit < pain_deficit_limit
+        then rec( 'soul_cleave' ) end
+
+        -- Fel Eruption
+        if ready( 'fel_eruption' )
+            and talented.fel_eruption
+        then rec( 'fel_eruption' ) end
+
+        -- Infernal Strike
+        --
+        -- Note: Don't cap charges or use when available during cleave without
+        -- overlapping SoF dot when using Flame Crash
+        if ready( 'infernal_strike' )
+            and chargeCt('infernal_strike') >= 1.85
+            and (
+                not talented.flame_crash
+                or (talented.flame_crash and debuffRemains.sigil_of_flame <= 1)
+            )
+            or (aura_env.targetCount >= 2
+                and chargeCt('infernal_strike') >= 1
+                and (
+                    not talented.flame_crash
+                    or (talented.flame_crash and debuffRemains.sigil_of_flame <= 1)
+                )
+            )
+        then rec( 'infernal_strike' ) end
+
+        -- Shear
+        if ready( 'shear' ) and
+            not wait_for_priority_abilities
+        then rec( 'shear' ) end
     end
 
     ---------------
