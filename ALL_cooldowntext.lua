@@ -17,6 +17,7 @@ function()
             end
         end
 
+
         -- Cooldown Progress (Item)
         if aura_env.state.trigger.itemName and aura_env.state.trigger.spellName then
             start, duration = GetItemCooldown(aura_env.state.trigger.itemName)
@@ -36,10 +37,12 @@ function()
                 if cooldown < 60 then
                     retstring = string.format("%.0f", cooldown)
                     if maxCharges > 0 then retstring = charges .. "/" .. retstring end
-                elseif cooldown >= 60 then
+                elseif cooldown >= 60 and cooldown < 999 then
                     rounded = math.floor(cooldown / 60 + 0.5)
                     retstring = string.format("%.0f", rounded) .. "m"
                     if maxCharges > 0 then retstring = charges .. "/" .. retstring end
+                elseif cooldown > 999 then
+                    retstring = charges
                 end
 
                 return retstring
