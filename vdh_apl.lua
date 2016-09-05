@@ -116,10 +116,10 @@ function ()
     if (talented.flame_crash and debuffRemains.sigil_of_flame <= 1) or not talented.flame_crash then use_sigil_of_flame = true end
 
     local wait_for_priority_abilities = false
-    if cooldowns.immolation_aura < 0.5 and pain_deficit >= 10 then wait_for_priority_abilities = true end
+    if cooldowns.immolation_aura < 0.5 and pain_deficit >= 15 then wait_for_priority_abilities = true end
     if talented.felblade and cooldowns.felblade < 0.5 and pain_deficit >= pain_deficit_limit then wait_for_priority_abilities = true end
     if talented.fel_eruption and cooldowns.fel_eruption < 0.5 then wait_for_priority_abilities = true end
-    if aura_env.targetCount >= 2 and cooldowns.sigil_of_flame < 0.5 then wait_for_priority_abilities = true end
+    if use_sigil_of_flame and aura_env.targetCount >= 2 and cooldowns.sigil_of_flame < 0.5 then wait_for_priority_abilities = true end
     if health_percentage <= danger_treshold and cooldowns.fel_devastation < 0.5 and pain >= 30 then wait_for_priority_abilities = true end
 
     ---------------
@@ -255,12 +255,8 @@ function ()
             -- Without Fiery Demise or Fel Devastation, just use on CD
             if ready( 'fiery_brand' )
                 and (
-                    (fiery_demise_rank >= 1
-                        and talented.fel_devastation
-                        and cooldowns.fel_devastation == 0
-                        and pain >= 30
-                    )
-                    or (not talented.fel_devastation or fiery_demise_rank == 0)
+                    ( fiery_demise_rank >= 1 and talented.fel_devastation and cooldowns.fel_devastation == 0 and pain >= 30 )
+                    or ( not talented.fel_devastation or fiery_demise_rank == 0 )
                 )
             then rec( 'fiery_brand' ) end
 
@@ -315,7 +311,7 @@ function ()
         -- overlapping SoF dot when using Flame Crash
         if ready( 'infernal_strike' )
             and use_sigil_of_flame
-            and (chargeCt('infernal_strike') >= 1.85 or aura_env.targetCount >= 2)
+            and ( chargeCt('infernal_strike') >= 1.85 or aura_env.targetCount >= 2 )
         then rec( 'infernal_strike' ) end
 
         -- Shear
