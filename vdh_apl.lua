@@ -112,13 +112,15 @@ function ()
     local rec = aura_env.rec
     local artifact_weapon = IsEquippedItem(128832)
 
+    local use_sigil_of_flame = false
+    if (talented.flame_crash and debuffRemains.sigil_of_flame <= 1) or not talented.flame_crash then use_sigil_of_flame = true end
+
     local wait_for_priority_abilities = false
     if cooldowns.immolation_aura < 0.5 and pain_deficit >= 10 then wait_for_priority_abilities = true end
     if talented.felblade and cooldowns.felblade < 0.5 and pain_deficit >= pain_deficit_limit then wait_for_priority_abilities = true end
     if talented.fel_eruption and cooldowns.fel_eruption < 0.5 then wait_for_priority_abilities = true end
     if aura_env.targetCount >= 2 and cooldowns.sigil_of_flame < 0.5 then wait_for_priority_abilities = true end
-    if health_percentage <= danger_treshold and cooldowns.fel_devastation < 0.5 then wait_for_priority_abilities = true end
-    if health_percentage <= danger_treshold and cooldowns.fiery_brand < 0.5 then wait_for_priority_abilities = true end
+    if health_percentage <= danger_treshold and cooldowns.fel_devastation < 0.5 and pain >= 30 then wait_for_priority_abilities = true end
 
     ---------------
     -- APL START --
@@ -164,8 +166,7 @@ function ()
                 and buffRemains.demon_spikes == 0
                 and buffRemains.metamorphosis == 0
                 and buffRemains.soul_barrier == 0
-                and chargeCt('demon_spikes') < 1
-                and health_percentage <= 85
+                and chargeCt('demon_spikes') < 0.8
             then rec( 'fiery_brand' ) end
 
             -- Meta if: health drops below critical treshold (30%)
@@ -219,15 +220,23 @@ function ()
             and soul_cleave_heal <= missing_health_percentage
         then rec( 'soul_cleave' ) end
 
-        -- Sigil of Flame
-        if ready( 'sigil_of_flame' )
-            and aura_env.targetCount >= 2
-        then rec( 'sigil_of_flame' ) end
-
         -- Immolation Aura
         if ready( 'immolation_aura' )
             and pain_deficit >= 15
         then rec( 'immolation_aura' ) end
+
+        -- Sigil of Flame
+        if ready( 'sigil_of_flame' )
+            and aura_env.targetCount >= 2
+            and debuffRemains.sigil_of_flame <= 1
+        then rec( 'sigil_of_flame' ) end
+
+        -- Spirit Bomb
+        if ready( 'spirit_bomb' )
+            and talented.spirit_bomb
+            and debuffRemains.frailty == 0
+            and soul_fragments >= 1
+        then rec( 'spirit_bomb' ) end
 
         -- Felblade
         if ready( 'felblade' )
@@ -235,8 +244,8 @@ function ()
             and pain_deficit >= pain_deficit_limit
         then rec( 'felblade' ) end
 
-        -- Having these enabled is not optimal for proper defensive play
-        -- Enable only if outgearing content
+        -- Having these enabled is NOT optimal for proper defensive play
+        -- Enable them only at your own peril (questing, overgearing content etc.)
         if WA_Redfellas_Rot_VDH_Off_CDs then
             -- Fiery Brand
             --
@@ -270,17 +279,17 @@ function ()
                 )
             then rec( 'fel_devastation' ) end
 
-            -- Soul Carver
-            -- if ready( 'soul_carver' )
-            -- then rec( 'soul_carver' ) end
-        end
+            -- Spirit Bomb
+            if ready( 'spirit_bomb' )
+                and talented.spirit_bomb
+                and aura_env.targetCount >= 2
+                and soul_fragments >= 1
+            then rec( 'spirit_bomb' ) end
 
-        -- Spirit Bomb
-        if ready( 'spirit_bomb' )
-            and talented.spirit_bomb
-            and debuffRemains.frailty == 0
-            and soul_fragments >= 1
-        then rec( 'spirit_bomb' ) end
+            -- Soul Carver
+            if ready( 'soul_carver' )
+            then rec( 'soul_carver' ) end
+        end
 
         -- Fracture
         if ready( 'fracture' )
@@ -288,7 +297,6 @@ function ()
             and talented.fracture
             and pain_deficit < pain_deficit_limit
         then rec( 'fracture' ) end
-
         -- Soul Cleave for DPS
 
         if ready( 'soul_cleave' )
@@ -306,18 +314,8 @@ function ()
         -- Note: Don't cap charges or use when available during cleave without
         -- overlapping SoF dot when using Flame Crash
         if ready( 'infernal_strike' )
-            and chargeCt('infernal_strike') >= 1.85
-            and (
-                not talented.flame_crash
-                or (talented.flame_crash and debuffRemains.sigil_of_flame <= 1)
-            )
-            or (aura_env.targetCount >= 2
-                and chargeCt('infernal_strike') >= 1
-                and (
-                    not talented.flame_crash
-                    or (talented.flame_crash and debuffRemains.sigil_of_flame <= 1)
-                )
-            )
+            and use_sigil_of_flame
+            and (chargeCt('infernal_strike') >= 1.85 or aura_env.targetCount >= 2)
         then rec( 'infernal_strike' ) end
 
         -- Shear
