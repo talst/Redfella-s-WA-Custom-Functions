@@ -79,23 +79,23 @@ aura_env.talents = {
     demonic_appetite = { 2, 3, 1 },
 
     felblade = { 3, 1, 1 },
-    todo = { 3, 2, 1 },
+    first_blood = { 3, 2, 1 },
     bloodlet = { 3, 3, 1 },
 
-    todo = { 4, 1, 1 },
-    todo = { 4, 2, 1 },
-    todo = { 4, 3, 1 },
+    netherwalk = { 4, 1, 1 },
+    desperate_insticts = { 4, 2, 1 },
+    soul_rending = { 4, 3, 1 },
 
-    todo = { 5, 1, 1 },
+    momentum = { 5, 1, 1 },
     fel_eruption = { 5, 2, 1 },
-    todo = { 5, 3, 1 },
+    nemesis = { 5, 3, 1 },
 
-    todo = {6, 1, 1 },
-    todo = { 6, 2, 1 },
-    todo = { 6, 3, 1 },
+    master_of_the_glaive = {6, 1, 1 },
+    unleashed_power = { 6, 2, 1 },
+    demon_reborn = { 6, 3, 1 },
 
-    todo = { 7, 1, 1 },
-    todo = { 7, 2, 1 },
+    chaos_blades = { 7, 1, 1 },
+    fel_barrage = { 7, 2, 1 },
     demonic = {7, 3, 1 }
 }
 
@@ -115,7 +115,12 @@ aura_env.abilities = {
     vengeful_retreat = 198793,
     blur = 198589,
     metamorphosis = 191427,
-    darkness = 196718
+    darkness = 196718,
+    nemesis = 206491,
+    chaos_blades = 211048,
+    netherwalk = 196555,
+    fel_eruption = 211881,
+    felblade = 213241
 }
 
 aura_env.chargedAbilities = {
