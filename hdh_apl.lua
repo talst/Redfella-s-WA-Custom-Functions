@@ -109,7 +109,7 @@ function ()
     local artifact_weapon = false -- IsEquippedItem(128832)
     local demon_form = false
     if buffRemains.metamorphosis > 0 then demon_form = true end
-    local fel_barrage_stacks = aura_env.get_unit_aura_value(222707, 'count') or 0
+    local fel_barrage_stacks = select(1, GetSpellCharges(211053)) or 0
     local momentum_duration = select(7,UnitBuff("player",GetSpellInfo(208628))) or 0
     aura_env.momentum_duration = momentum_duration - GetTime()
     local momentum_buff = false
@@ -123,6 +123,10 @@ function ()
     if not in_combat then
         if ready( 'fel_rush')
         then rec ('fel_rush' ) end
+        if ready( 'throw_glaive')
+        then rec ('throw_glaive' ) end
+        if ready( 'demons_bite')
+        then rec ('demons_bite' ) end
     else
         -- Defensive cooldowns are toggled on
         if WA_Redfellas_Rot_HDH_Def_CDs then
@@ -251,6 +255,13 @@ function ()
             then rec( 'throw_glaive' ) end
         end
 
+        -- Fel Barrage @ 5 stacks (without Momentum)
+        if ready('fel_barrage')
+            and not talented.momentum
+            and talented.fel_barrage
+            and fel_barrage_stacks == 5
+        then rec( 'fel_barrage' ) end
+
         -- Fel Eruption if talented & available
         if ready( 'fel_eruption')
             and talented.fel_eruption
@@ -328,10 +339,6 @@ function ()
         if ready( 'demons_bite' )
             and not talented.demon_blades
         then rec( 'demons_bite' ) end
-
-        -- Throw Glaives
-        if ready('throw_glaive')
-        then rec( 'throw_glaive' ) end
 
         -- Simply show demons bite icon when just meleeing and nothing to press and cooldowns > 5s
         if ready( 'demons_bite' )
