@@ -110,7 +110,7 @@ function ()
     local blooddrinker_heal = aura_env.blooddrinker_heal()
     local artifact_weapon = IsEquippedItem(128402)
     local consumption_heal = 9999999999999
-    if artifact_weapon then consumption_heal = aura_env.consumption_heal() end
+    if artifact_weapon then consumption_heal = aura_env.consumption_heal() * aura_env.targetCount end
 
     -- Calculate time to soft-capping runes, we always, ALWAYS prefer to have three runes charging
     local time_to_3_runes = aura_env.time_to_x_runes(3)
@@ -156,10 +156,17 @@ function ()
 
     -- Cooldowns Enabled: below danger treshold (default: 55%)
     if WA_Redfellas_Rot_BDK_Def_CDs and health_percentage <= danger_treshold then
+        if artifact_weapon
+            and health_percentage <= critical_treshold
+            and  ready( 'consumption' )
+        then rec( 'consumption' ) end
+
         -- Vampiric Embrace if: player is below critical treshold (default: 25%) --OR--  RP for two Death Strikes
         if ready( 'vampiric_blood' ) and health_percentage <= critical_treshold or two_death_strikes_available then rec( 'vampiric_blood' ) end
         -- Death Strike if: VE is active  --OR--  VE is on cooldown
         if ready( 'death_strike' ) and death_strike_available and (buffRemains.vampiric_blood > 0 or cooldowns.vampiric_blood > 0) then rec( 'death_strike' ) end
+        -- Consumption if: critical treshold and can't DS
+        if ready( 'dancing_rune_weapon' ) and not death_strike_available and cooldowns.vampiric_blood > 0 and buffRemains.vampiric_blood == 0 then rec( 'dancing_rune_weapon' ) end
         -- Dancing Rune Weapon if: we can't Death Strike or VE, and VE isn't active
         if ready( 'dancing_rune_weapon' ) and not death_strike_available and cooldowns.vampiric_blood > 0 and buffRemains.vampiric_blood == 0 then rec( 'dancing_rune_weapon' ) end
         -- Prio RP generators when in danger
@@ -176,8 +183,12 @@ function ()
     end
 
     -- SELFHEALS IF: Will not overheal
-    -- Consumption if: Artifact equipped
-    if artifact_weapon and WA_Redfellas_Rot_BDK_Def_CDs and  ready( 'consumption') and missing_health_percentage >= consumption_heal then rec( 'consumption' ) end
+    if artifact_weapon
+        and WA_Redfellas_Rot_BDK_Def_CDs
+        and ready( 'consumption')
+        and missing_health_percentage >= consumption_heal
+        and missing_health_percentage >= 25
+    then rec( 'consumption' ) end
     -- Blooddrinker if: talented & got runes
     if talented.blooddrinker and WA_Redfellas_Rot_BDK_Def_CDs and ready( 'blooddrinker' ) and missing_health_percentage >= blooddrinker_heal then rec( 'blooddrinker' ) end
     -- Death Strike if: not banking for Bonestorm
