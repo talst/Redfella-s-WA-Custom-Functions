@@ -286,7 +286,7 @@ function aura_env.consumption_heal()
     consumption_heal = math.floor(consumption_heal + 0.5)
     -- turn into healed percentage
     local heal_percent = math.floor( consumption_heal / health * 100 )
-    return consumption_heal
+    return heal_percent
 end
 
 function aura_env.get_external_multiplier()
