@@ -1,6 +1,6 @@
 function()
     if UnitAffectingCombat("player") and aura_env.recommended then
-        local default = aura_env.targetCount > 1 and aura_env.targetCount or nil
+        local default = aura_env.targetCount > 1 and aura_env.targetCount or ""
         local bone_shield_stacks = aura_env.get_unit_aura_value(195181, 'count') or 0
         local bbcharges = GetSpellCharges(50842)
         local runic_power = UnitPower("player")
@@ -25,8 +25,6 @@ function()
         end
         if aura_env.recommended == 206930 then return runes_available .. "R\n\n\n\n" end
         if aura_env.recommended == 50842 then return bbcharges .. "/2\n\n\n\n" end
-        return default
-    else
-        return "\n\n\n\nOOC"
+        return "\n\n\n\n" .. default
     end
 end
