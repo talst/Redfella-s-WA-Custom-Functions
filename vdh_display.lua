@@ -30,7 +30,7 @@ function()
 
         -- Spirit Bomb
         if rec == 218679
-        then return soul_fragments .. "/5\n\n\n" .. default end
+        then return soul_fragments .. "/5\n\n\n" .. aura_env.targetCount end
 
         -- Charged abilities
         if rec == 189110
