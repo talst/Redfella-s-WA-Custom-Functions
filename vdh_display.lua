@@ -21,11 +21,16 @@ function()
             then return health_percentage .. "%%\n\n\n" .. pain .. "P"
             else return pain .. "P\n\n\n\n"  end
         end
+
         -- Pain generators / Pure spenders
         if rec == 203782
             or rec == 209795
             or rec == 213241
         then return pain .. "P\n\n\n\n" end
+
+        -- Spirit Bomb
+        if rec == 218679
+        then return soul_fragments .. "/5\n\n\n" .. default end
 
         -- Charged abilities
         if rec == 189110
