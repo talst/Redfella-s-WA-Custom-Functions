@@ -106,7 +106,7 @@ function ()
     local critical_treshold = aura_env.critical_treshold
     local ready = aura_env.ready
     local rec = aura_env.rec
-    local artifact_weapon = false -- IsEquippedItem(128832)
+    local artifact_weapon = IsEquippedItem(127829)
     local demon_form = false
     if buffRemains.metamorphosis > 0 then demon_form = true end
     local fel_barrage_stacks = select(1, GetSpellCharges(211053)) or 0
