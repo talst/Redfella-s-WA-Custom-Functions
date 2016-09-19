@@ -1,5 +1,4 @@
 -- UNIT_POWER_FREQUENT, SPELL_UPDATE_COOLDOWN, SPELL_UPDATE_CHARGES, PLAYER_TARGET_CHANGED, UNIT_SPELLCAST_SUCCEEDED
-
 function ()
     if not WA_Redfellas_Rot_UDK_Enabled or UnitOnTaxi("player") or not UnitCanAttack("player", "target") then
         return false
@@ -38,13 +37,21 @@ function ()
     local target_health = UnitHealth("target");
     local target_health_percentage = math.ceil( (UnitHealth("target") / UnitHealthMax("target") * 100) )
     local target_health_max = UnitHealthMax("target");
-    local target_missing_health_percentage = 100 - health_percentage
+    local target_missing_health_percentage = 100 - target_health_percentage
 
-    -- suggest cds if the target isn't a trash mob
+    local dead_soon = false
     local recommend_cooldowns = false
+
     if WA_Redfellas_Rot_UDK_Off_CDs
-        and target_health_max > 150000000
+        and target_health > 50000000
+        or target_health_max > 500000000
     then recommend_cooldowns = true end
+
+    if target_health < 10000000 and target_health_max > 10000000
+    then dead_soon = true end
+
+    if target_health < 2500000
+    then dead_soon = true end
 
     for k,v in pairs( targets ) do
         if now - v > aura_env.targetWipeInterval then
@@ -110,36 +117,38 @@ function ()
 
     local danger_treshold = aura_env.danger_treshold
     local critical_treshold = aura_env.critical_treshold
-    local runes = aura_env.runes_available()
     local ready = aura_env.ready
     local rec = aura_env.rec
-    local runes = aura_env.runes_available()
+    local runes_available = aura_env.runes_available()
     local artifact_weapon = IsEquippedItem(128403)
-
     local runic_power = UnitPower("player")
     local runic_power_max = UnitPowerMax("player")
     local runic_power_deficit = runic_power_max - runic_power
     local runic_power_cap = 20 -- @TODO
-
-
     local festering_wounds = select(4,UnitDebuff("target",GetSpellInfo(194310))) or 0
 
     local prepare_for_SR_and_Apo = false
-
     -- SR + Apocalypse are up or will be up soon, get to 8 wounds
     if festering_wounds < 8
+        and recommend_cooldowns
         and cooldowns.soul_reaper < 10
         and cooldowns.apocalypse < 10
     then prepare_for_SR_and_Apo = true end
 
     -- SR is up or will be up soon, get to 3 wounds
     if festering_wounds < 3
+        and recommend_cooldowns
         and cooldowns.soul_reaper < 5
     then prepare_for_SR_and_Apo = true end
 
     ---------------
     -- APL START --
     ---------------
+
+    -- Death Strike when near death
+    if ready( 'death_strike' )
+        and aura_env.critical_treshold > health_percentage
+    then rec( 'death_strike' ) end
 
     -- Keep VirulentPlague up
     if ready( 'outbreak' )
@@ -148,30 +157,37 @@ function ()
 
     -- DT on CD
     if ready( 'dark_transformation' )
+        and recommend_cooldowns
     then rec( 'dark_transformation' ) end
 
     -- Gargoyle on CD
     if ready( 'summon_gargoyle' )
+        and recommend_cooldowns
     then rec( 'summon_gargoyle' ) end
 
     -- SR if Apocalypse is ready and got 8 wounds
     if ready( 'soul_reaper' )
+        and recommend_cooldowns
         and festering_wounds >= 8
         and cooldowns.apocalypse == 0
     then rec( 'soul_reaper' ) end
 
     -- SR if Apocalypse CD > 45s and got 3 runes and 3 wounds
     if ready( 'soul_reaper' )
+        and recommend_cooldowns
         and festering_wounds >= 3
         and cooldowns.apocalypse >= 45
         and runes_available >= 3
     then rec( 'soul_reaper' ) end
 
+
     -- Apocalypse when target is affected by SR
     if ready( 'apocalypse' )
+        and recommend_cooldowns
         and festering_wounds >= 8
         and debuffRemains.soul_reaper > 0
     then rec( 'apocalypse' ) end
+
 
     -- Scourge Strike to pop 3 wounds when SR is active and Apocalypse is on cooldown
     if ready( 'scourge_strike' )
@@ -179,16 +195,20 @@ function ()
         and debuffRemains.soul_reaper > 0
     then rec( 'scourge_strike' ) end
 
+
     -- Epidemic when fighting multiple targets if talent taken
     if ready( 'epidemic' )
         and talented.epidemic
         and aura_env.targetCount >= 3
     then rec( 'epidemic') end
 
+
     -- Death and Decay on CD when fighting multiple targets
     if ready('death_and_decay' )
+        and runes_available >= 2
         and aura_env.targetCount >= 2
     then rec( 'death_and_decay' ) end
+
 
     -- Scourge Strike when fighting multiple targets after Epidemic & DnD are already used
     if ready( 'scourge_strike' )
@@ -199,6 +219,12 @@ function ()
         and aura_env.targetCount >= 3
     then rec( 'scourge_strike') end
 
+    -- Death Strike to fill a global when it's free and we need healing
+    if ready( 'death_strike' )
+        and health_percentage < 80
+        and buffRemains.dark_succor > 0
+    then rec( 'death_strike' ) end
+
     -- Death Coil when RP cap is near or we want to reduce DT cooldown
     if ready( 'death_coil' )
         and runic_power_deficit <= 20
@@ -207,6 +233,7 @@ function ()
 
     -- Build wounds in anticipation of Apocalypse
     if ready( 'festering_strike' )
+        and recommend_cooldowns
         and prepare_for_SR_and_Apo
     then rec( 'festering_strike' ) end
 
@@ -218,8 +245,13 @@ function ()
 
     if ready( 'scourge_strike' )
         and not prepare_for_SR_and_Apo
-        and festering_wounds >= 3
+        and (festering_wounds >= 3 or dead_soon)
     then rec( 'scourge_strike' ) end
+
+    -- Death Strike to fill a global when it's free
+    if ready( 'death_strike' )
+        and buffRemains.dark_succor > 0
+    then rec( 'death_strike' ) end
 
     -- Death Coil if no runes
     if ready( 'death_coil' )

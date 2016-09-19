@@ -3,8 +3,8 @@ aura_env.lastUpdate = GetTime()
 aura_env.targetWipeInterval = 5
 
 -- danger measures (hp %): build up to 2x DS and do VE > DS > DS or DRW if VE down and no RP
-aura_env.danger_treshold = 55
-aura_env.critical_treshold = 25
+aura_env.danger_treshold = 50
+aura_env.critical_treshold = 20
 
 aura_env.enabledToggle = "ALT-SHIFT-T"
 aura_env.offCooldownsToggle = "ALT-SHIFT-R"
@@ -73,28 +73,28 @@ aura_env.talents = {
     bursting_sores = { 1, 2, 1 },
     ebon_fever = { 1, 3, 1 },
 
-    TODO = { 2, 1, 1 },
+    epidemic = { 2, 1, 1 },
     pestilent_pustules = { 2, 2, 1 },
-    TODO = { 2, 3, 1 },
+    blighted_rune_weapon = { 2, 3, 1 },
 
-    TODO = { 3, 1, 1 },
+    unholy_frenzy = { 3, 1, 1 },
     castigator = { 3, 2, 1 },
-    TODO = { 3, 3, 1 },
+    clawing_shadows = { 3, 3, 1 },
 
     sludge_belcher = { 4, 1, 1 },
-    TODO = { 4, 2, 1 },
-    TODO = { 4, 3, 1 },
+    asphyxiate = { 4, 2, 1 },
+    debilitating_infestation = { 4, 3, 1 },
 
-    TODO = {5, 1, 1 },
-    TODO = { 5, 2, 1 },
+    spell_eater = {5, 1, 1 },
+    corpse_shield = { 5, 2, 1 },
     lingering_apparition = { 5, 3, 1 },
 
     shadow_infusion = { 6, 1, 1 },
-    TODO = { 6, 2, 1 },
-    TODO = {6, 3, 1 },
+    necrosis = { 6, 2, 1 },
+    infected_claws = {6, 3, 1 },
 
-    TODO = { 7, 1, 1 },
-    TODO = { 7, 2, 1 },
+    dark_arbiter = { 7, 1, 1 },
+    defile = { 7, 2, 1 },
     soul_reaper = { 7, 3, 1 }
 }
 
@@ -112,7 +112,8 @@ aura_env.abilities = {
     summon_gargoyle = 49206,
     apocalypse = 220143,
     death_and_decay = 43265,
-    epidemic = 207317
+    epidemic = 207317,
+    death_strike = 49998
 }
 
 aura_env.chargedAbilities = {
@@ -132,6 +133,7 @@ aura_env.chargeTime = {}
 aura_env.chargesMax = {}
 
 aura_env.buffs = {
+    dark_succor = 178819
 }
 
 aura_env.buffNames = {}

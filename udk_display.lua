@@ -1,7 +1,9 @@
 function()
     if UnitAffectingCombat("player") and aura_env.recommended then
         local rec = aura_env.recommended
-        local default = aura_env.targetCount > 1 and aura_env.targetCount or ""
+        local default = ""
+        if (aura_env.targetCount > 1) then default = string.format("%.0f", aura_env.targetCount) end
+
         local festering_wounds = select(4,UnitDebuff("target",GetSpellInfo(194310))) or 0
         local runic_power = UnitPower("player")
         local health_percentage = math.ceil( (UnitHealth("player") / UnitHealthMax("player") * 100) )
@@ -21,6 +23,6 @@ function()
             return runes_available .. "R\n\n\n" .. festering_wounds .. "W"
         end
 
-        return "\n\n\n\n" .. default
+        return " \n\n\n" .. default
     end
 end

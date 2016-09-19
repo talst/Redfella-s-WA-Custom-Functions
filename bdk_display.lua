@@ -1,7 +1,9 @@
 function()
     if UnitAffectingCombat("player") and aura_env.recommended then
         local rec = aura_env.recommended
-        local default = aura_env.targetCount > 1 and aura_env.targetCount or ""
+        local default = ""
+        if (aura_env.targetCount > 1) then default = string.format("%.0f", aura_env.targetCount) end
+
         local bone_shield_stacks = aura_env.get_unit_aura_value(195181, 'count') or 0
         local bbcharges = GetSpellCharges(50842)
         local runic_power = UnitPower("player")
@@ -15,6 +17,7 @@ function()
             end
         end
 
+        if rec == 49028 then return bone_shield_stacks .. "/10\n\n\n\n" end
         if rec == 195182 then return bone_shield_stacks .. "/10\n\n\n\n" end
         if rec == 55233 then return health_percentage .. "%%\n\n\n\n" end
         if rec == 194844 then return runic_power .. "RP\n\n\n\n" end
@@ -26,6 +29,6 @@ function()
         end
         if rec == 206930 then return runes_available .. "R\n\n\n\n" end
         if rec == 50842 then return bbcharges .. "/2\n\n\n\n" end
-        return "\n\n\n\n" .. default
+        return " \n\n\n" .. default
     end
 end

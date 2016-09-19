@@ -1,7 +1,9 @@
 function()
     if UnitAffectingCombat("player") and aura_env.recommended then
         local rec = aura_env.recommended
-        local default = aura_env.targetCount > 1 and aura_env.targetCount or ""
+        local default = ""
+        if (aura_env.targetCount > 1) then default = string.format("%.0f", aura_env.targetCount) end
+
         local soul_fragments = aura_env.soul_fragments()
         local pain = UnitPower("player")
         local infernal_strike_charges = GetSpellCharges(189110)
@@ -40,6 +42,6 @@ function()
         then return demon_spikes_charges .. "/2\n\n\n\n" end
 
         -- Default if no matches
-        return "\n\n\n\n" .. default
+        return " \n\n\n" .. default
     end
 end
