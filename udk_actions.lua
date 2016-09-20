@@ -57,6 +57,9 @@ end
 
 aura_env.setupBinds()
 
+aura_env.bank = false
+aura_env.prepare = false
+
 aura_env.showCooldownRing = true
 aura_env.invertCooldownRing = false
 aura_env.showRangeHighlight = true
