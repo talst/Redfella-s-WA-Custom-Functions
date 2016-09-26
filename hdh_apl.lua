@@ -94,7 +94,7 @@ function ()
 
     -- Check if debuffs are up.
     for k,v in pairs( debuffList ) do
-        local _, _, _, _, _, _, expires = UnitDebuff("target", debuffNames[ v ] )
+        local _, _, _, _, _, _, expires = UnitDebuff("target", debuffNames[ v ], nil, 'PLAYER' )
         debuffRemains[ k ] = expires and expires - now or 0
     end
 

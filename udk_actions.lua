@@ -71,6 +71,7 @@ aura_env.timeOffset = 0
 aura_env.targets = {}
 aura_env.targetCount = 0
 
+
 aura_env.talents = {
     all_will_serve = { 1, 1, 1 },
     bursting_sores = { 1, 2, 1 },
@@ -184,6 +185,18 @@ function aura_env.runes_available()
     return readycount
 end
 
+
+
+function aura_env.aura_stack(value, ...)
+    if not select(1, ...) or select(1, ...) ~= 'COMBAT_LOG_EVENT_UNFILTERED' or not value then return end
+    local event, comparison = select(3, ...)
+    if not event or not string.find(event, '_AURA_') then return end
+    if type(value) == 'string' then comparison = select(14, ...)
+    elseif type(value) == 'number' then comparison = tonumber(select(13, ...))
+    else return end
+    if not comparison or not (value == comparison) then return end
+    local stack = select(17, ...)return stack
+end
 
 function aura_env.get_unit_aura_value(aura, valueType, unit, sourceUnit)
     if not aura then return end valueType, unit = valueType or 'name', unit or 'player' if not UnitExists(unit) then return end local v, value = {}

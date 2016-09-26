@@ -107,7 +107,7 @@ function ()
 
     -- Check if debuffs are up.
     for k,v in pairs( debuffList ) do
-        local _, _, _, _, _, _, expires = UnitDebuff("target", debuffNames[ v ] )
+        local _, _, _, _, _, _, expires = UnitDebuff("target", debuffNames[ v ], nil, 'PLAYER' )
         debuffRemains[ k ] = expires and expires - now or 0
     end
 
@@ -115,6 +115,7 @@ function ()
     aura_env.recommended = 0
     aura_env.timeToReady = 10
 
+    local soul_reaper_stacks = aura_env.get_unit_aura_value(215711, 'count') or 0
     local danger_treshold = aura_env.danger_treshold
     local critical_treshold = aura_env.critical_treshold
     local ready = aura_env.ready
@@ -125,8 +126,9 @@ function ()
     local runic_power_max = UnitPowerMax("player")
     local runic_power_deficit = runic_power_max - runic_power
     local runic_power_cap = 20 -- @TODO
-    local festering_wounds = select(4,UnitDebuff("target",GetSpellInfo(194310))) or 0
-    local soul_reaper_stacks = aura_env.get_unit_aura_value(215711, 'count') or 0
+
+    local fester_player = select(8,UnitDebuff("target",GetSpellInfo(194310)));
+    local festering_wounds = select(4,UnitDebuff("target",GetSpellInfo(194310), nil, 'PLAYER')) or 0
 
     aura_env.bank = false
     aura_env.prepare = false
@@ -217,7 +219,6 @@ function ()
         -- Apocalypse when target is affected by SR
         if ready( 'apocalypse' )
             and recommend_cooldowns
-            and festering_wounds >= 7
             and debuffRemains.soul_reaper > 0
         then rec( 'apocalypse' ) end
 
@@ -239,15 +240,14 @@ function ()
 
         -- Death and Decay on CD when fighting multiple targets
         if ready('death_and_decay' )
-            and spend_runes
             and runes_available >= rune_treshold
             and aura_env.targetCount >= 2
         then rec( 'death_and_decay' ) end
 
 
         -- Scourge Strike when fighting multiple targets after Epidemic & DnD are already used
+        -- @TODO Buffremains DND
         if ready( 'scourge_strike' )
-            and spend_runes
             and pop_wounds
             and runes_available >= rune_treshold
             and cooldowns.epidemic > 0
@@ -293,8 +293,7 @@ function ()
         if ready( 'auto_attack' )
         then
              rec( 'auto_attack' )
-             return false
-         end
+        end
     end
 
     ---------------

@@ -97,7 +97,7 @@ function ()
 
     -- Check if debuffs are up.
     for k,v in pairs( debuffList ) do
-        local _, _, _, _, _, _, expires = UnitDebuff("target", debuffNames[ v ] )
+        local _, _, _, _, _, _, expires = UnitDebuff("target", debuffNames[ v ], nil, 'PLAYER' )
         debuffRemains[ k ] = expires and expires - now or 0
     end
 
@@ -151,37 +151,49 @@ function ()
                 and artifact_weapon
                 and health_percentage <= 75
                 and soul_fragments == 0
+                and debuffRemains.fiery_brand == 0
             then rec( 'soul_carver' ) end
 
             -- Demon Spikes
             if ready( 'demon_spikes' )
                 and chargeCt('demon_spikes') >= 1.75
                 and buffRemains.demon_spikes == 0
+                and debuffRemains.fiery_brand == 0
                 and pain >= 20
                 and health_percentage <= 85
             then rec( 'demon_spikes' ) end
 
             -- Fiery Brand
             if ready( 'fiery_brand' )
+                and health_percentage <= 85
                 and buffRemains.demon_spikes == 0
                 and buffRemains.metamorphosis == 0
                 and buffRemains.soul_barrier == 0
-                and chargeCt('demon_spikes') < 0.8
+                and chargeCt('demon_spikes') < 1
             then rec( 'fiery_brand' ) end
 
-            -- Meta if: health drops below critical treshold (30%)
+            -- Fel Devastation
+            if ready( 'fel_devastation' )
+                and health_percentage <= 55
+                and talented.fel_devastation
+                and pain >= 30
+            then rec( 'fel_devastation' ) end
+
+            -- Meta if: health drops below critical treshold (30%) or we're
+            -- resource starved and under 40%
             if ready( 'metamorphosis' )
                 and health_percentage <= critical_treshold
+                or ( health_percentage <= 40
+                    and pain <= 20
+                    and cooldowns.fiery_brand > 0
+                    and debuffRemains.fiery_brand == 0
+                    and buffRemains.demon_spikes == 0
+                    and chargeCt('demon_spikes') < 0.5
+                )
             then rec( 'metamorphosis' ) end
 
-            -- Below danger treshold (55%) hp
+            -- Below danger treshold (50%) hp
             if health_percentage <= danger_treshold then
-                -- Fel Devastation
-                if ready( 'fel_devastation' )
-                    and talented.fel_devastation
-                    and pain >= 30
-                then rec( 'fel_devastation' ) end
-
                 -- Soul Barrier
                 if ready( 'soul_barrier' )
                     and talented.soul_barrier
@@ -220,6 +232,13 @@ function ()
             and soul_cleave_heal <= missing_health_percentage
         then rec( 'soul_cleave' ) end
 
+        -- Spirit Bomb
+        if ready( 'spirit_bomb' )
+            and talented.spirit_bomb
+            and debuffRemains.frailty < 5
+            and soul_fragments >= 1
+        then rec( 'spirit_bomb' ) end
+
         -- Immolation Aura
         if ready( 'immolation_aura' )
             and pain_deficit >= 15
@@ -230,13 +249,6 @@ function ()
             and aura_env.targetCount >= 2
             and debuffRemains.sigil_of_flame <= 1
         then rec( 'sigil_of_flame' ) end
-
-        -- Spirit Bomb
-        if ready( 'spirit_bomb' )
-            and talented.spirit_bomb
-            and debuffRemains.frailty == 0
-            and soul_fragments >= 1
-        then rec( 'spirit_bomb' ) end
 
         -- Felblade
         if ready( 'felblade' )

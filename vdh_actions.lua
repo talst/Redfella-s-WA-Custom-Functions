@@ -2,7 +2,7 @@ aura_env.updateInterval = 0.03
 aura_env.lastUpdate = GetTime()
 aura_env.targetWipeInterval = 5
 
-aura_env.danger_treshold = 55
+aura_env.danger_treshold = 50
 aura_env.critical_treshold = 30
 
 if aura_env.in_combat == nil then aura_env.in_combat = false end
