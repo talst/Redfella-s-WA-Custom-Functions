@@ -206,8 +206,13 @@ function ()
     if ready( 'marrowrend' ) and bone_shield_stacks == 0 and runes >= 2 then rec( 'marrowrend') end
     -- Bonestorm if: CD usage enabled, talented and 100+ RP, max RP BS will consume is 100
     if WA_Redfellas_Rot_BDK_Off_CDs and talented.bonestorm and ready( 'bonestorm' ) and runic_power >= 100 then rec( 'bonestorm' ) end
-    -- Death Strike if: Need to spend RP and not talented Bonestorm / Bonestorm on CD
-    if (not talented.bonestorm or (WA_Redfellas_Rot_BDK_Off_CDs and cooldowns.bonestorm > 0)) and ready( 'death_strike' ) and death_strike_available and runic_power >= runic_power_cap then rec( 'death_strike' ) end
+
+    -- Death Strike if: Need to spend RP and talented Bonestorm & Bonestorm on CD
+    if WA_Redfellas_Rot_BDK_Off_CDs and talented.bonestorm and ready( 'death_strike' ) and runic_power >= runic_power_cap then rec( 'death_strike' ) end
+
+    -- Death Strike if: Need to spend RP and talented Bonestorm & Bonestorm on CD
+    if ready( 'death_strike' ) and runic_power >= runic_power_cap then rec( 'death_strike' ) end
+
     -- Marrowrend if: Need 6 or more BS stacks and DRW active
     if ready( 'marrowrend' ) and buffRemains.dancing_rune_weapon > 0 and bone_shield_stacks <= 4 and runes >= 2 then rec( 'marrowrend') end
 

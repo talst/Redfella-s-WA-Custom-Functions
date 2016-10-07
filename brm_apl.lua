@@ -98,7 +98,7 @@ function ()
         local _, _, _, _, _, _, expires = UnitDebuff("target", debuffNames[ v ], nil, 'PLAYER' )
         debuffRemains[ k ] = expires and expires - now or 0
     end
-    
+
     aura_env.lastRec = aura_env.recommended
     aura_env.recommended = 0
     aura_env.timeToReady = 10
@@ -122,6 +122,24 @@ function ()
 
     -- Talent not in use: Blackout Combo
     if talented.blackout_combo == false then
+        if aura_env.targetCount >= 2 then
+            if ready( 'exploding_keg' )
+            then rec( 'exploding_keg' ) end
+
+            if ready( 'keg_smash' )
+            then rec( 'keg_smash' ) end
+
+            if ready( 'chi_burst' )
+            then rec( 'chi_burst' ) end
+
+            if ready( 'breath_of_fire' )
+            then rec( 'breath_of_fire' ) end
+
+            if talented.rushing_jade_wind
+                and ready( 'rushing_jade_wind' )
+            then rec( 'rushing_jade_wind') end
+        end
+
         -- Keg Smash if it's ready
         if ready( 'keg_smash' ) then rec( 'keg_smash' ) end
         -- Tiger palm if about to cap energy

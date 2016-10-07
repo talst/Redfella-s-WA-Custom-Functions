@@ -101,7 +101,8 @@ aura_env.abilities = {
     roll = 109132,
     tigers_lust = 116841,
     black_ox_brew = 115399,
-    rushing_jade_wind = 116847
+    rushing_jade_wind = 116847,
+    exploding_keg = 214326
 }
 
 aura_env.chargedAbilities = {
