@@ -110,11 +110,13 @@ function ()
     local demon_form = false
     if buffRemains.metamorphosis > 0 then demon_form = true end
     local fel_barrage_stacks = select(1, GetSpellCharges(211053)) or 0
+    local throw_glaive_stacks = select(1, GetSpellCharges(185123)) or 0
     local momentum_duration = select(7,UnitBuff("player",GetSpellInfo(208628))) or 0
     aura_env.momentum_duration = momentum_duration - GetTime()
     local momentum_buff = false
     if talented.momentum and aura_env.momentum_duration > 0 then momentum_buff = true end
     local range = IsSpellInRange( abilityNames[162243] )
+    local anguish_of_the_deceiver = aura_env.get_trait_rank(201473) > 0
 
     ---------------
     -- APL START --
@@ -128,6 +130,7 @@ function ()
         if ready( 'demons_bite')
         then rec ('demons_bite' ) end
     else
+
         -- Defensive cooldowns are toggled on
         if WA_Redfellas_Rot_HDH_Def_CDs then
             -- Blur if: health is below 40%
@@ -143,207 +146,218 @@ function ()
             then rec( 'darkness' ) end
         end
 
-        -- Momentum talent but no buff
-        if talented.momentum and not momentum_buff then
-            -- Vengeful retreat /w Momentum
-            if ready( 'vengeful_retreat' )
-                and fury_deficit >= 20
-            then rec( 'vengeful_retreat' ) end
+        -- AOE Rotation
+        if aura_env.targetCount >= 3 then
+          -- 1
+          if ready('fel_rush')
+            and chargeCt('fel_rush') >= 1.5
+            and (
+              (talented.fel_mastery and fury <= 70)
+              or (talented.momentum and not momentum_buff)
+              or (aura_env.targetCount > 3)
+            )
+          then rec('fel_rush') end
 
-            -- Fel rush /w Momentum
-            if ready( 'fel_rush' )
-                and fury_deficit >= 25
-                and chargeCt('fel_rush') >= 1.5
-                and cooldowns.vengeful_retreat > 4
-            then rec( 'fel_rush' ) end
+          -- 2
+          if ready('vengeful_retreat')
+            and not demon_form
+            and (
+              (talented.prepared and fury <= 85)
+              or (talented.momentum and not momentum_buff)
+            )
+          then rec('vengeful_retreat') end
 
-            -- Blur Offensively
-            if ready('blur')
-                and WA_Redfellas_Rot_HDH_Off_CDs
-                and chargeCt('fel_rush') < 1
-                and cooldowns.vengeful_retreat > 4
-                and fury_deficit >= 25
-            then  rec('blur') end
-        end
+          -- Build Fury for Meta
+          if WA_Redfellas_Rot_HDH_Off_CDs then
+              -- Pool fury for meta if not using demon blades and missing more than 25 fury
+              if ready('demons_bite')
+                  and not talented.demon_blades
+                  and fury_deficit >= 20
+                  and (cooldowns.metamorphosis == 0 or cooldowns.metamorphosis <= 5)
+              then rec( 'demons_bite' ) end
 
-        -- Not using momentum
-        if not talented.momentum then
-            -- Vengeful retreat
-            if ready( 'vengeful_retreat' )
-                and talented.prepared
-                and fury_deficit >= 20
-                and not demon_form
-            then rec( 'vengeful_retreat' ) end
+              -- Nemesis before Meta if talented
+              if ready( 'nemesis' )
+                  and talented.nemesis
+                  and cooldowns.metamorphosis == 0
+                  and fury_deficit <= 20
+              then rec( 'nemesis' ) end
 
-            -- Fel rush
-            if ready( 'fel_rush' )
-                and talented.fel_mastery
-                and fury_deficit >= 25
-                and chargeCt('fel_rush') >= 1.5
-                and ( not talented.prepared  or cooldowns.vengeful_retreat > 4 )
-            then rec( 'fel_rush' ) end
-        end
+              -- Meta available and near fury cap
+              if ready( 'metamorphosis' )
+                  and fury_deficit <= 20
+              then rec('metamorphosis') end
+          end
 
-        -- Throw glaives when out of range
-        if ready('throw_glaive')
-            and range == 0
-        then rec( 'throw_glaive' ) end
+          -- 4
+          if ready('fury_of_the_illidari')
+            and (momentum_buff or not talented.momentum)
+          then rec('fury_of_the_illidari') end
 
-        -- Fury of the Illidari if Offensive CDs are toggled on and artifact equipped
-        if ready( 'fury_of_the_illidari' )
-            and WA_Redfellas_Rot_HDH_Off_CDs
-            and artifact_weapon
-        then rec( 'fury_of_the_illidari' ) end
+          -- 5
+          if ready('fel_barrage')
+            and talented.fel_barrage
+            and fel_barrage_stacks >= 4
+            and (momentum_buff or not talented.momentum)
+          then rec('fel_barrage') end
 
-        -- Eye Beam near Fury cap (with Demonic)
-        if ready( 'eye_beam' )
-            and fury_deficit <= 10
+          -- 6
+          if ready( 'eye_beam' )
+              and (momentum_buff or not talented.momentum)
+          then rec( 'eye_beam' ) end
+
+          -- 7
+          if ready('death_sweep') and demon_form then rec('death_sweep')
+          else if ready('blade_dance') then rec('blade_dance') end
+          end
+
+          -- 8
+          if ready('throw_glaive')
+            and talented.bloodlet
+            and (momentum_buff or not talented.momentum)
+            and throw_glaive_stacks == 2
+          then rec('throw_glaive') end
+
+          -- 9
+          if ready('chaos_strike')
+            and talented.chaos_cleave
+            and aura_env.targetCount <= 3
+          then rec('chaos_strike') end
+
+          -- 10
+          if ready('throw_glaive') then rec('throw_glaive') end
+
+          -- 11
+          if ready('chaos_strike')
+            and (fury >= 70 or (fury >= 60 and talented.demon_blades))
+          then rec('chaos_strike') end
+
+        -- Single Target Rotation
+        else
+          -- Cast Vengeful Retreat with Prepared taken as long as you are 20
+          -- or lower Fury from your cap, or to trigger Momentum Icon Momentum.
+          if ready('vengeful_retreat')
+            and not demon_form
+            and (
+              (talented.prepared and fury <= 85)
+              or (talented.momentum and not momentum_buff)
+            )
+          then rec('vengeful_retreat') end
+
+          -- Cast Fel Rush with Fel Mastery taken as long as you are 30 Fury or
+          -- lower from your cap, or about to hit 2 charges, or to trigger Momentum.
+          if ready('fel_rush')
+            and chargeCt('fel_rush') >= 1.5
+            and (
+              (talented.fel_mastery and fury <= 70)
+              or (talented.momentum and not momentum_buff)
+            )
+          then rec('fel_rush') end
+
+          -- Cast Eye Beam to trigger Demonic.
+          if ready('eye_beam')
             and talented.demonic
-        then rec( 'eye_beam' ) end
+            and not demon_form
+          then rec('eye_beam') end
 
-        -- Chaos Blades during meta or in between
-        if ready( 'chaos_blades' )
-            and talented.chaos_blades
-            and (demon_form or cooldowns.metamorphosis > 120)
-        then rec( 'chaos_blades' ) end
+          -- Chaos Blades during meta or in between
+          if ready( 'chaos_blades' )
+              and talented.chaos_blades
+              and (demon_form or cooldowns.metamorphosis > 120)
+          then rec( 'chaos_blades' ) end
 
-        -- Build Fury for Meta
-        if WA_Redfellas_Rot_HDH_Off_CDs then
-            -- Pool fury for meta if not using demon blades and missing more than 25 fury
-            if ready('demons_bite')
-                and not talented.demon_blades
-                and fury_deficit >= 20
-                and (cooldowns.metamorphosis == 0 or cooldowns.metamorphosis <= 5)
-            then rec( 'demons_bite' ) end
+          -- Build Fury for Meta
+          if WA_Redfellas_Rot_HDH_Off_CDs then
+              -- Pool fury for meta if not using demon blades and missing more than 25 fury
+              if ready('demons_bite')
+                  and not talented.demon_blades
+                  and fury_deficit >= 20
+                  and (cooldowns.metamorphosis == 0 or cooldowns.metamorphosis <= 5)
+              then rec( 'demons_bite' ) end
 
-            -- Nemesis before Meta if talented
-            if ready( 'nemesis' )
-                and talented.nemesis
-                and cooldowns.metamorphosis == 0
-                and fury_deficit <= 20
-            then rec( 'nemesis' ) end
+              -- Nemesis before Meta if talented
+              if ready( 'nemesis' )
+                  and talented.nemesis
+                  and cooldowns.metamorphosis == 0
+                  and fury_deficit <= 20
+              then rec( 'nemesis' ) end
 
-            -- Meta available and near fury cap
-            if ready( 'metamorphosis' )
-                and fury_deficit <= 20
-            then rec('metamorphosis') end
-        end
+              -- Meta available and near fury cap
+              if ready( 'metamorphosis' )
+                  and fury_deficit <= 20
+              then rec('metamorphosis') end
+          end
 
-        -- Death Sweep / Blade Dance if 4+ target (with Momentum buff)
-        if talented.momentum and momentum_buff then
-            if ready( 'death_sweep' )
-                and demon_form
-                and aura_env.targetCount >= 4
-            then rec( 'death_sweep' ) end
+          -- Cast Fel Eruption if taken.
+          if ready('fel_eruption')
+            and talented.fel_eruption
+          then rec('fel_eruption') end
 
-            if ready( 'blade_dance' )
-                and not demon_form
-                and aura_env.targetCount >= 4
-            then rec( 'blade_dance' ) end
+          -- Cast Fury of the Illidari, sync with Momentum.
+          if ready('fury_of_the_illidari')
+            and (momentum_buff or not talented.momentum)
+          then rec('fury_of_the_illidari') end
 
-            -- Fel Barrage @ 5 stacks (with Momentum)
-            if ready('fel_barrage')
-                and talented.fel_barrage
-                and fel_barrage_stacks == 5
-            then rec( 'fel_barrage' ) end
+          -- Cast Blade Dance or Death Sweep with First Blood, sync with Momentum.
+          if talented.first_blood and (momentum_buff or not talented.momentum) then
+            if ready('death_sweep') and demon_form then rec('death_sweep')
+            else if ready('blade_dance') then rec('blade_dance') end
+            end
+          end
 
-            -- Throw Glaive @ 2 stacks (with Momentum and Bloodlet)
-            if ready( 'throw_glaive' )
-                and talented.fel_barrage
-                and fel_barrage_stacks == 2
-                and talented.bloodlet
-            then rec( 'throw_glaive' ) end
-        end
+          -- Cast Felblade as long as you are 30 Fury or lower from your cap.
+          if ready('felblade')
+            and talented.felblade
+            and fury <= 70
+          then rec('felblade') end
 
-        -- Fel Barrage @ 5 stacks (without Momentum)
-        if ready('fel_barrage')
-            and not talented.momentum
+          -- Cast Throw Glaive with Bloodlet, sync with Momentum.
+          if ready('throw_glaive')
+            and talented.bloodlet
+            and (momentum_buff or not talented.momentum)
+            and throw_glaive_stacks == 2
+          then rec('throw_glaive') end
+
+          -- Cast Fel Barrage at 5 charges, sync with Momentum.
+          if ready('fel_barrage')
             and talented.fel_barrage
             and fel_barrage_stacks == 5
-        then rec( 'fel_barrage' ) end
+            and (momentum_buff or not talented.momentum)
+          then rec('fel_barrage') end
 
-        -- Fel Eruption if talented & available
-        if ready( 'fel_eruption')
-            and talented.fel_eruption
-        then rec( 'fel_eruption' ) end
+          -- Cast Annihilation when 30 Fury or less from your cap.
+          if ready('annihilation')
+            and demon_form
+            and (fury >= 70 or momentum_buff)
+          then rec('annihilation') end
 
-        -- Felblade if talented, available and fury deficit >= 30
-        if ready( 'felblade')
-            and talented.felblade
-            and fury_deficit >= 30
-        then rec( 'felblade' ) end
+          -- Cast Eye Beam if you have the Anguish of the Deceiver trait.
+          if  ready('eye_beam')
+              and anguish_of_the_deceiver
+          then rec('eye_beam') end
 
-        -- If momentum buff and talented
-        if talented.momentum and momentum_buff then
-            -- Annihilation (with Momentum)
-            if ready( 'annihilation' )
-                and demon_form
-            then rec( 'annihilation' ) end
+          -- Cast Chaos Strike when 30 Fury or less from your cap.
+          if ready('chaos_strike')
+            and (fury >= 70 or momentum_buff)
+          then rec('chaos_strike') end
 
-            -- Throw Glaive (with Momentum and Bloodlet)
-            if ready( 'throw_glaive' )
-                and talented.bloodlet
-            then rec( 'throw_glaive' ) end
-
-            -- Eye Beam (if Anguish in Artifact and Momentum)
-            if  ready( 'eye_beam' )
-                and debuffRemains.anguish
-            then rec( 'eye_beam' ) end
-
-            -- Chaos Strike (with Momentum)
-            if ready( 'chaos_strike' )
-                and not demon_form
-            then rec( 'chaos_strike' ) end
-
-            -- Fel Barrage @ 4 stacks (with Momentum)
-            if ready('fel_barrage')
-                and talented.fel_barrage
-                and fel_barrage_stacks == 4
-            then rec( 'fel_barrage' ) end
+          -- Cast Fel Barrage at 4 charges, sync with Momentum.
+          if ready('fel_barrage')
+            and talented.fel_barrage
+            and fel_barrage_stacks == 4
+            and (momentum_buff or not talented.momentum)
+          then rec('fel_barrage') end
         end
 
-        -- Eye Beam with enough targets when not using momentum
-        if ready( 'eye_beam' )
-            and not talented.momentum
-            and aura_env.targetCount >= 2
-        then rec( 'eye_beam' ) end
+          -- Cast Fel Rush if out of range of targets to re-engage.
+          if ready('fel_rush') and range == 0 then rec('fel_rush') end
 
-        -- Death Sweep / Blade dance @ >= 2 targets
-        if ready( 'death_sweep' )
-            and demon_form
-            and aura_env.targetCount >= 2
-        then rec( 'death_sweep' ) end
+          -- Cast Throw Glaive if out of range of any targets, or in empty Globals with Demon Blades Icon Demon Blades.
+          if ready('throw_glaive') and range == 0 then rec('throw_glaive') end
 
-        if ready( 'blade_dance' )
-            and not demon_form
-            and aura_env.targetCount >= 2
-        then rec( 'blade_dance' ) end
+          -- Cast Demon's Bite to generate Fury.
+          if ready('demons_bite') then rec('demons_bite') end
 
-        -- Throw Glaive >= 3 target
-        if ready( 'throw_glaive')
-            and not demon_form
-            and aura_env.targetCount >= 3
-        then rec('throw_glaive') end
-
-        -- Chaos Strike
-        if ready( 'annihilation' )
-            and demon_form
-        then rec( 'annihilation' ) end
-
-        if ready( 'chaos_strike' )
-            and not demon_form
-            and (not WA_Redfellas_Rot_HDH_Off_CDs or (WA_Redfellas_Rot_HDH_Off_CDs and cooldowns.metamorphosis > 0))
-        then rec( 'chaos_strike' ) end
-
-        -- Demon's Bite
-        if ready( 'demons_bite' )
-            and not talented.demon_blades
-        then rec( 'demons_bite' ) end
-
-        -- Simply show demons bite icon when just meleeing and nothing to press and cooldowns > 5s
-        if ready( 'demons_bite' )
-            and talented.demon_blades
-        then rec( 'demons_bite' ) end
     end
 
     -- print("REC:", aura_env.recommended)

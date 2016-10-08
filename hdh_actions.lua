@@ -232,3 +232,25 @@ end
 function aura_env.cdLeft( spell )
     return max( 0, aura_env.cooldowns[ spell ] - aura_env.timeOffset )
 end
+
+function aura_env.get_trait_rank(trait_id)
+    local rank = 0
+    local loaded = IsAddOnLoaded("LibArtifactData-1.0") or LoadAddOn("LibArtifactData-1.0")
+    if loaded then
+        aura_env.LAD = aura_env.LAD or LibStub("LibArtifactData-1.0")
+        if not aura_env.LAD:GetActiveArtifactID() then
+            aura_env.LAD:ForceUpdate()
+        end
+        local _, traits = aura_env.LAD:GetArtifactTraits()
+        if traits then
+            for _,v in ipairs(traits) do
+                if v.spellID == trait_id then
+                    rank = v.currentRank
+                    break
+                end
+            end
+        end
+    end
+
+    return rank
+end
