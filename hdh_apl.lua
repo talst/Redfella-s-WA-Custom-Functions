@@ -152,19 +152,14 @@ function ()
           if ready('fel_rush')
             and chargeCt('fel_rush') >= 1.5
             and (
-              (talented.fel_mastery and fury_deficit >= 30)
-              or (talented.momentum and not momentum_buff)
+              not momentum_buff
               or (aura_env.targetCount > 3)
             )
           then rec('fel_rush') end
 
           -- 2
           if ready('vengeful_retreat')
-            and not demon_form
-            and (
-              (talented.prepared and fury_deficit >= 25)
-              or (talented.momentum and not momentum_buff)
-            )
+            and not momentum_buff
           then rec('vengeful_retreat') end
 
           -- Build Fury for Meta
@@ -206,6 +201,23 @@ function ()
               and (momentum_buff or not talented.momentum)
           then rec( 'eye_beam' ) end
 
+          -- Cast Vengeful Retreat with Prepared taken as long as you are 20
+          -- or lower Fury from your cap.
+          if ready('vengeful_retreat')
+            and talented.prepared
+            and not talented.momentum
+            and fury_deficit >= 25
+          then rec('vengeful_retreat') end
+
+          -- Cast Fel Rush with Fel Mastery taken as long as you are 30 Fury or
+          -- lower from your cap, or about to hit 2 charges.
+          if ready('fel_rush')
+            and chargeCt('fel_rush') >= 1.5
+            and talented.fel_mastery
+            and not talented.momentum
+            and fury_deficit >= 30
+          then rec('fel_rush') end
+
           -- 7
           if ready('death_sweep') and demon_form then rec('death_sweep')
           else if ready('blade_dance') then rec('blade_dance') end
@@ -234,24 +246,15 @@ function ()
 
         -- Single Target Rotation
         else
-          -- Cast Vengeful Retreat with Prepared taken as long as you are 20
-          -- or lower Fury from your cap, or to trigger Momentum Icon Momentum.
+          -- Cast Vengeful Retreat to trigger Momentum.
           if ready('vengeful_retreat')
-            and not demon_form
-            and (
-              (talented.prepared and fury_deficit >= 25)
-              or (talented.momentum and not momentum_buff)
-            )
+            and not momentum_buf
           then rec('vengeful_retreat') end
 
-          -- Cast Fel Rush with Fel Mastery taken as long as you are 30 Fury or
-          -- lower from your cap, or about to hit 2 charges, or to trigger Momentum.
+          -- Cast Fel Rush to trigger Momentum.
           if ready('fel_rush')
             and chargeCt('fel_rush') >= 1.5
-            and (
-              (talented.fel_mastery and fury_deficit >= 30)
-              or (talented.momentum and not momentum_buff)
-            )
+            and not momentum_buff
           then rec('fel_rush') end
 
           -- Cast Eye Beam to trigger Demonic.
@@ -324,6 +327,23 @@ function ()
             and fel_barrage_stacks == 5
             and (momentum_buff or not talented.momentum)
           then rec('fel_barrage') end
+
+          -- Cast Vengeful Retreat with Prepared taken as long as you are 20
+          -- or lower Fury from your cap.
+          if ready('vengeful_retreat')
+            and talented.prepared
+            and not talented.momentum
+            and fury_deficit >= 25
+          then rec('vengeful_retreat') end
+
+          -- Cast Fel Rush with Fel Mastery taken as long as you are 30 Fury or
+          -- lower from your cap, or about to hit 2 charges.
+          if ready('fel_rush')
+            and chargeCt('fel_rush') >= 1.5
+            and talented.fel_mastery
+            and not talented.momentum
+            and fury_deficit >= 30
+          then rec('fel_rush') end
 
           -- Cast Annihilation when 30 Fury or less from your cap.
           if ready('annihilation')
