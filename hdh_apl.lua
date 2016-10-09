@@ -248,7 +248,7 @@ function ()
         else
           -- Cast Vengeful Retreat to trigger Momentum.
           if ready('vengeful_retreat')
-            and not momentum_buf
+            and not momentum_buff
           then rec('vengeful_retreat') end
 
           -- Cast Fel Rush to trigger Momentum.
