@@ -152,7 +152,7 @@ function ()
           if ready('fel_rush')
             and chargeCt('fel_rush') >= 1.5
             and (
-              (talented.fel_mastery and fury <= 70)
+              (talented.fel_mastery and fury_deficit >= 30)
               or (talented.momentum and not momentum_buff)
               or (aura_env.targetCount > 3)
             )
@@ -162,7 +162,7 @@ function ()
           if ready('vengeful_retreat')
             and not demon_form
             and (
-              (talented.prepared and fury <= 85)
+              (talented.prepared and fury_deficit >= 25)
               or (talented.momentum and not momentum_buff)
             )
           then rec('vengeful_retreat') end
@@ -215,7 +215,7 @@ function ()
           if ready('throw_glaive')
             and talented.bloodlet
             and (momentum_buff or not talented.momentum)
-            and throw_glaive_stacks == 2
+            and debuffRemains.bloodlet < 1
           then rec('throw_glaive') end
 
           -- 9
@@ -229,7 +229,7 @@ function ()
 
           -- 11
           if ready('chaos_strike')
-            and (fury >= 70 or (fury >= 60 and talented.demon_blades))
+            and (fury_deficit <= 30 or (fury_deficit <= 40 and talented.demon_blades))
           then rec('chaos_strike') end
 
         -- Single Target Rotation
@@ -239,7 +239,7 @@ function ()
           if ready('vengeful_retreat')
             and not demon_form
             and (
-              (talented.prepared and fury <= 85)
+              (talented.prepared and fury_deficit >= 25)
               or (talented.momentum and not momentum_buff)
             )
           then rec('vengeful_retreat') end
@@ -249,7 +249,7 @@ function ()
           if ready('fel_rush')
             and chargeCt('fel_rush') >= 1.5
             and (
-              (talented.fel_mastery and fury <= 70)
+              (talented.fel_mastery and fury_deficit >= 30)
               or (talented.momentum and not momentum_buff)
             )
           then rec('fel_rush') end
@@ -308,14 +308,14 @@ function ()
           -- Cast Felblade as long as you are 30 Fury or lower from your cap.
           if ready('felblade')
             and talented.felblade
-            and fury <= 70
+            and fury_deficit >= 30
           then rec('felblade') end
 
           -- Cast Throw Glaive with Bloodlet, sync with Momentum.
           if ready('throw_glaive')
             and talented.bloodlet
             and (momentum_buff or not talented.momentum)
-            and throw_glaive_stacks == 2
+            and debuffRemains.bloodlet < 1
           then rec('throw_glaive') end
 
           -- Cast Fel Barrage at 5 charges, sync with Momentum.
@@ -328,7 +328,7 @@ function ()
           -- Cast Annihilation when 30 Fury or less from your cap.
           if ready('annihilation')
             and demon_form
-            and (fury >= 70 or momentum_buff)
+            and (fury_deficit <= 30 or momentum_buff)
           then rec('annihilation') end
 
           -- Cast Eye Beam if you have the Anguish of the Deceiver trait.
@@ -338,7 +338,7 @@ function ()
 
           -- Cast Chaos Strike when 30 Fury or less from your cap.
           if ready('chaos_strike')
-            and (fury >= 70 or momentum_buff)
+            and (fury_deficit <= 30 or momentum_buff)
           then rec('chaos_strike') end
 
           -- Cast Fel Barrage at 4 charges, sync with Momentum.
