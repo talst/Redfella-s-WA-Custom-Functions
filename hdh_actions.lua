@@ -159,7 +159,8 @@ aura_env.buffRemains = {}
 
 aura_env.debuffs = {
     frailty = 224509,
-    anguish = 202443
+    anguish = 202443,
+    bloodlet = 207690
 }
 
 aura_env.debuffNames = {}
