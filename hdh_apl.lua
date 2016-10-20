@@ -185,21 +185,16 @@ function ()
           end
 
           -- 4
-          if ready('fury_of_the_illidari')
-            and (momentum_buff or not talented.momentum)
-          then rec('fury_of_the_illidari') end
+          if ready('fury_of_the_illidari') then rec('fury_of_the_illidari') end
 
           -- 5
           if ready('fel_barrage')
             and talented.fel_barrage
             and fel_barrage_stacks >= 4
-            and (momentum_buff or not talented.momentum)
           then rec('fel_barrage') end
 
           -- 6
-          if ready( 'eye_beam' )
-              and (momentum_buff or not talented.momentum)
-          then rec( 'eye_beam' ) end
+          if ready( 'eye_beam' ) then rec( 'eye_beam' ) end
 
           -- Cast Vengeful Retreat with Prepared taken as long as you are 20
           -- or lower Fury from your cap.
@@ -226,7 +221,6 @@ function ()
           -- 8
           if ready('throw_glaive')
             and talented.bloodlet
-            and (momentum_buff or not talented.momentum)
             and debuffRemains.bloodlet < 1
           then rec('throw_glaive') end
 
@@ -297,12 +291,10 @@ function ()
           then rec('fel_eruption') end
 
           -- Cast Fury of the Illidari, sync with Momentum.
-          if ready('fury_of_the_illidari')
-            and (momentum_buff or not talented.momentum)
-          then rec('fury_of_the_illidari') end
+          if ready('fury_of_the_illidari') then rec('fury_of_the_illidari') end
 
           -- Cast Blade Dance or Death Sweep with First Blood, sync with Momentum.
-          if talented.first_blood and (momentum_buff or not talented.momentum) then
+          if talented.first_blood then
             if ready('death_sweep') and demon_form then rec('death_sweep')
             else if ready('blade_dance') then rec('blade_dance') end
             end
@@ -317,7 +309,6 @@ function ()
           -- Cast Throw Glaive with Bloodlet, sync with Momentum.
           if ready('throw_glaive')
             and talented.bloodlet
-            and (momentum_buff or not talented.momentum)
             and debuffRemains.bloodlet < 1
           then rec('throw_glaive') end
 
@@ -325,7 +316,6 @@ function ()
           if ready('fel_barrage')
             and talented.fel_barrage
             and fel_barrage_stacks == 5
-            and (momentum_buff or not talented.momentum)
           then rec('fel_barrage') end
 
           -- Cast Vengeful Retreat with Prepared taken as long as you are 20
@@ -365,7 +355,6 @@ function ()
           if ready('fel_barrage')
             and talented.fel_barrage
             and fel_barrage_stacks == 4
-            and (momentum_buff or not talented.momentum)
           then rec('fel_barrage') end
         end
 
