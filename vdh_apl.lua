@@ -158,6 +158,7 @@ function ()
             if ready( 'demon_spikes' )
                 and chargeCt('demon_spikes') >= 1.75
                 and buffRemains.demon_spikes == 0
+                and buffRemains.metamorphosis == 0
                 and debuffRemains.fiery_brand == 0
                 and pain >= 20
                 and health_percentage <= 85
@@ -176,6 +177,7 @@ function ()
             if ready( 'fel_devastation' )
                 and health_percentage <= 55
                 and talented.fel_devastation
+                and buffRemains.metamorphosis == 0
                 and pain >= 30
             then rec( 'fel_devastation' ) end
 
@@ -210,6 +212,11 @@ function ()
                     and buffRemains.metamorphosis == 0
                     and buffRemains.soul_barrier == 0
                 then rec( 'fiery_brand' ) end
+
+                -- Fel Devastation
+                if ready( 'fel_devastation' )
+                    and pain >= 30
+                then rec( 'fel_devastation' ) end
 
                 -- Generate Pain for healing instead of bothering with pure DPS abilities when in danger
                 if ready( 'immolation_aura' )
