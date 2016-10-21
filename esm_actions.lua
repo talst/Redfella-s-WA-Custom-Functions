@@ -7,56 +7,6 @@ aura_env.critical_treshold = 30
 
 if aura_env.in_combat == nil then aura_env.in_combat = false end
 
-aura_env.enabledToggle = "ALT-SHIFT-T"
-aura_env.offCooldownsToggle = "ALT-SHIFT-R"
-aura_env.defCooldownsToggle = "ALT-SHIFT-E"
-
-WA_Redfellas_Rot_VDH_Enabled = WeakAurasSaved.displays[aura_env.id].hekiliEnabled == nil and true or WeakAurasSaved.displays[aura_env.id].hekiliEnabled
-WA_Redfellas_Rot_VDH_Off_CDs = WeakAurasSaved.displays[aura_env.id].hekiliCooldownsOff == nil and false or WeakAurasSaved.displays[aura_env.id].hekiliCooldownsOff
-WA_Redfellas_Rot_VDH_Def_CDs = WeakAurasSaved.displays[aura_env.id].hekiliCooldownsDef == nil and false or WeakAurasSaved.displays[aura_env.id].hekiliCooldownsDef
-
-aura_env.bindsInitialized = false
-
-aura_env.keyhandler = aura_env.keyhandler or CreateFrame("Button", aura_env.id.."_Keyhandler", UIParent)
-aura_env.keyhandler.parent = aura_env
-aura_env.keyhandler:RegisterForClicks("AnyDown")
-aura_env.keyhandler:SetScript("OnClick", function (self, button, down)
-        if button == "defCooldowns" then
-            WA_Redfellas_Rot_VDH_Def_CDs = not WA_Redfellas_Rot_VDH_Def_CDs
-            print("|cFF00FFFFRedfella's Rotation Helper Defensive Cooldowns: " .. ( WA_Redfellas_Rot_VDH_Def_CDs and "|cFF00FF00ENABLED|r" or "|cFFFF0000DISABLED|r" ) )
-        elseif button == "Enabled" then
-            WA_Redfellas_Rot_VDH_Enabled = not WA_Redfellas_Rot_VDH_Enabled
-            print("|cFF00FFFFRedfella's Rotation Helper: " .. ( WA_Redfellas_Rot_VDH_Enabled and "|cFF00FF00ENABLED|r" or "|cFFFF0000DISABLED|r" ) )
-        elseif button == "offCooldowns" then
-            WA_Redfellas_Rot_VDH_Off_CDs = not WA_Redfellas_Rot_VDH_Off_CDs
-            print("|cFF00FFFFRedfella's Rotation Offensive Helper: " .. ( WA_Redfellas_Rot_VDH_Off_CDs and "|cFF00FF00ENABLED|r" or "|cFFFF0000DISABLED|r" ) )
-        end
-
-        WeakAurasSaved.displays[self.parent.id].hekiliEnabled = WA_Redfellas_Rot_VDH_Enabled
-        WeakAurasSaved.displays[self.parent.id].hekiliCooldownsOff = WA_Redfellas_Rot_VDH_Off_CDs
-        WeakAurasSaved.displays[self.parent.id].hekiliCooldownsDef = WA_Redfellas_Rot_VDH_Def_CDs
-end)
-
-function aura_env.setupBinds()
-
-    if InCombatLockdown() then return end
-
-    ClearOverrideBindings( aura_env.keyhandler )
-    SetOverrideBindingClick( aura_env.keyhandler, true, aura_env.enabledToggle, aura_env.id.."_Keyhandler", "Enabled" )
-    SetOverrideBindingClick( aura_env.keyhandler, true, aura_env.offCooldownsToggle, aura_env.id.."_Keyhandler", "offCooldowns" )
-    SetOverrideBindingClick( aura_env.keyhandler, true, aura_env.defCooldownsToggle, aura_env.id.."_Keyhandler", "defCooldowns" )
-
-    print("|cFF00FFFFRedfella's Rotation Helper|r:  Keybinds are now active.")
-    print("Enable/Disable - |cFFFFD100" .. aura_env.enabledToggle .. "|r. Rotation: " .. tostring(WA_Redfellas_Rot_VDH_Enabled) .. ".")
-    print("Toggle Defensive Cooldowns - |cFFFFD100" .. aura_env.defCooldownsToggle .. "|r. Defensives: " .. tostring(WA_Redfellas_Rot_VDH_Def_CDs) .. ".")
-    print("Toggle Offensive Cooldowns - |cFFFFD100" .. aura_env.offCooldownsToggle .. "|r. Offensives: " .. tostring(WA_Redfellas_Rot_VDH_Off_CDs) .. ".")
-    print("You can *carefully* change these keybinds in the " .. aura_env.id .. " WeakAura on the Actions Tab, On Init, Expand Text Editor and see lines 11 to 13." )
-    aura_env.bindsInitialized = true
-
-end
-
-aura_env.setupBinds()
-
 aura_env.showCooldownRing = true
 aura_env.invertCooldownRing = false
 aura_env.showRangeHighlight = true
@@ -69,59 +19,70 @@ aura_env.targets = {}
 aura_env.targetCount = 0
 
 aura_env.talents = {
-    abyssal_strike = { 1, 1, 1 },
-    agonizing_flames = { 1, 2, 1 },
-    razor_spikes = { 1, 3, 1 },
+    windsong = { 1, 1, 1 },
+    hot_hand = { 1, 2, 1 },
+    boulderfist = { 1, 3, 1 },
 
-    feast_of_souls = { 2, 1, 1 },
-    fallout = { 2, 2, 1 },
-    burning_alive = { 2, 3, 1 },
+    rainfall = { 2, 1, 1 },
+    feral_lunge = { 2, 2, 1 },
+    wind_rush_totem = { 2, 3, 1 },
 
-    felblade = { 3, 1, 1 },
-    flame_crash = { 3, 2, 1 },
-    fel_eruption = { 3, 3, 1 },
+    lightning_surge_totem = { 3, 1, 1 },
+    earthgrab_totem = { 3, 2, 1 },
+    voodoo_totem = { 3, 3, 1 },
 
-    feed_the_demon = { 4, 1, 1 },
-    fracture = { 4, 2, 1 },
-    soul_rending = { 4, 3, 1 },
+    lightning_shield = { 4, 1, 1 },
+    ancestral_swiftness = { 4, 2, 1 },
+    hailstorm = { 4, 3, 1 },
 
-    concentrated_sigils = { 5, 1, 1 },
-    sigil_of_chains = { 5, 2, 1 },
-    quickened_sigils = { 5, 3, 1 },
+    tempest = { 5, 1, 1 },
+    overcharge = { 5, 2, 1 },
+    empowered_stormlash = { 5, 3, 1 },
 
-    fel_devastation = {6, 1, 1 },
-    blade_turning = { 6, 2, 1 },
-    spirit_bomb = { 6, 3, 1 },
+    crashing_storm = {6, 1, 1 },
+    fury_of_air = { 6, 2, 1 },
+    sundering = { 6, 3, 1 },
 
-    last_resort = { 7, 1, 1 },
-    nether_bond = { 7, 2, 1 },
-    soul_barrier = {7, 3, 1 }
+    ascendance = { 7, 1, 1 },
+    landslide = { 7, 2, 1 },
+    earthen_spike = {7, 3, 1 }
 }
 
 aura_env.talented = {}
 
 aura_env.abilities = {
-    shear = 203782,
-    soul_cleave = 228477,
-    immolation_aura = 178740,
-    sigil_of_flame = 204596,
-    infernal_strike = 189110,
-    demon_spikes = 203720,
-    metamorphosis = 187827,
-    fiery_brand = 204021,
-    fel_devastation = 212084,
-    soul_barrier = 227225,
-    spirit_bomb = 218679,
-    fel_eruption = 211881,
-    felblade = 213241,
-    fracture = 209795,
-    throw_glaive = 204157,
-    soul_carver = 207407
+    ascendance = 114051,
+    earthen_spike = 188089,
+    landslide = 197992,
+    fury_of_air = 197211,
+    sundering = 197214,
+    empowered_stormlash = 210731,
+    overcharge = 210727,
+    tempest = 192234,
+    spirit_walk = 58875,
+    ancestral_swiftness = 192087,
+    hailstorm = 210853,
+    lightning_shield = 192106,
+    feral_spirit = 51533,
+    feral_lunge = 196884,
+    rainfall = 215864,
+    crash_lightning = 187874,
+    stormstrike = 17364,
+    wind_shear = 57994,
+    frostbrand = 196834,
+    cleanse_spirit = 51886,
+    boulderfist = 201897,
+    windsong = 201898,
+    flametongue = 193796,
+    lava_lash = 60103,
+    rockbiter = 193786,
+    healing_surge = 188070,
+    lightning_bolt = 187837,
+    doom_winds = 204945
 }
 
 aura_env.chargedAbilities = {
-    infernal_strike = 189110,
-    demon_spikes = 203720
+    boulderfist = 201897
 }
 
 aura_env.abilityNames = {}
@@ -131,8 +92,9 @@ for k,v in pairs( aura_env.abilities ) do
 end
 
 aura_env.cooldowns = {
-    metamorphosis = 187827,
-    soul_carver = 207407,
+    feral_spirit = 51533,
+    windsong = 201898,
+    doom_winds = 204945
 }
 
 aura_env.charges = {}
@@ -140,11 +102,17 @@ aura_env.chargeTime = {}
 aura_env.chargesMax = {}
 
 aura_env.buffs = {
-    demon_spikes = 203819,
-    metamorphosis = 187827,
-    immolation_aura = 178740,
-    soul_fragments = 203981,
-    soul_barrier = 227225
+    boulderfist = 218825,
+    landslide = 202004,
+    stormlash = 195222,
+    stormbringer = 201846,
+    wind_strikes = 198293,
+    frostbrand = 196834,
+    flametongue = 194084,
+    gathering_storms = 198300,
+    astral_shift = 108271
+    spirit_walk = 58875,
+    doom_winds = 204945
 }
 
 aura_env.buffNames = {}
@@ -155,11 +123,7 @@ end
 
 aura_env.buffRemains = {}
 
-aura_env.debuffs = {
-    frailty = 224509,
-    fiery_brand = 204022,
-    sigil_of_flame = 204598
-}
+aura_env.debuffs = {}
 
 aura_env.debuffNames = {}
 
@@ -177,11 +141,6 @@ end
 function aura_env.ready( spell )
     local result = aura_env.cooldowns[ spell ] < aura_env.timeToReady
     return result
-end
-
-function aura_env.soul_fragments()
-    local soul_fragments = GetSpellCount(228477) or 0
-    return soul_fragments
 end
 
 function aura_env.health_percentage()
