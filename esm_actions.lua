@@ -53,15 +53,9 @@ aura_env.talented = {}
 aura_env.abilities = {
     ascendance = 114051,
     earthen_spike = 188089,
-    landslide = 197992,
     fury_of_air = 197211,
     sundering = 197214,
-    empowered_stormlash = 210731,
-    overcharge = 210727,
-    tempest = 192234,
     spirit_walk = 58875,
-    ancestral_swiftness = 192087,
-    hailstorm = 210853,
     lightning_shield = 192106,
     feral_spirit = 51533,
     feral_lunge = 196884,
@@ -92,9 +86,28 @@ for k,v in pairs( aura_env.abilities ) do
 end
 
 aura_env.cooldowns = {
-    feral_spirit = 51533,
-    windsong = 201898,
-    doom_winds = 204945
+  ascendance = 114051,
+  earthen_spike = 188089,
+  fury_of_air = 197211,
+  sundering = 197214,
+  spirit_walk = 58875,
+  lightning_shield = 192106,
+  feral_spirit = 51533,
+  feral_lunge = 196884,
+  rainfall = 215864,
+  crash_lightning = 187874,
+  stormstrike = 17364,
+  wind_shear = 57994,
+  frostbrand = 196834,
+  cleanse_spirit = 51886,
+  boulderfist = 201897,
+  windsong = 201898,
+  flametongue = 193796,
+  lava_lash = 60103,
+  rockbiter = 193786,
+  healing_surge = 188070,
+  lightning_bolt = 187837,
+  doom_winds = 204945
 }
 
 aura_env.charges = {}
@@ -110,9 +123,10 @@ aura_env.buffs = {
     frostbrand = 196834,
     flametongue = 194084,
     gathering_storms = 198300,
-    astral_shift = 108271
+    astral_shift = 108271,
     spirit_walk = 58875,
-    doom_winds = 204945
+    doom_winds = 204945,
+    hot_hand = 201900
 }
 
 aura_env.buffNames = {}
@@ -215,45 +229,6 @@ function aura_env.get_external_multiplier()
     if UnitAura("player", 64844) then multiplier = multiplier * 1.1 end
 
     return multiplier
-end
-
--- by MightBeGiant originally
-function aura_env.soul_cleave_heal()
-    local max_health = UnitHealthMax("player")
-    local pain = UnitPower("player")
-    if pain < 30 then return 0 end
-
-    -- Stat multipliers
-    local ap_base, ap_pos, ap_neg = UnitAttackPower("player")
-    local AP = ap_base + ap_pos + ap_neg
-
-    local versatility = GetCombatRatingBonus(CR_VERSATILITY_DAMAGE_DONE) + GetVersatilityBonus(CR_VERSATILITY_DAMAGE_DONE)
-    local vers_multi = 1 + (versatility / 100)
-
-    -- Artifact trait multipliers
-    local artifact_multi = aura_env.get_artifact_multiplier()
-
-    -- External buff multipliers
-    local external_multi = aura_env.get_external_multiplier()
-
-    -- Soul Fragments healing
-    local fragments = select(4, UnitBuff("player", GetSpellInfo(203981))) or 0
-
-    local single_frag_heal = (2.5 * AP) * vers_multi
-
-    local total_frag_heal = single_frag_heal * fragments
-
-
-    -- Soul Cleave healing
-    local base_heal = 2 * AP * 5.5
-
-    local cleave_heal = base_heal * vers_multi * (min(60, pain) / 60) * artifact_multi * external_multi
-
-    -- Total healing
-    local total_heal = (total_frag_heal + cleave_heal)
-    local heal_percent = math.floor( total_heal / max_health * 100 )
-
-    return heal_percent
 end
 
 function aura_env.get_unit_aura_value(aura, valueType, unit, sourceUnit)
