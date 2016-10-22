@@ -120,7 +120,8 @@ aura_env.abilities = {
     chaos_blades = 211048,
     netherwalk = 196555,
     fel_eruption = 211881,
-    felblade = 213241
+    felblade = 213241,
+    chaos_nova = 179057
 }
 
 aura_env.chargedAbilities = {
@@ -134,8 +135,23 @@ for k,v in pairs( aura_env.abilities ) do
 end
 
 aura_env.cooldowns = {
-    metamorphosis = 191427,
-    darkness = 196718
+  blade_dance = 188499,
+  death_sweep = 210152,
+  fury_of_the_illidari = 201467,
+  eye_beam = 198013,
+  throw_glaive = 185123,
+  fel_barrage = 211053,
+  fel_rush = 195072,
+  vengeful_retreat = 198793,
+  blur = 198589,
+  metamorphosis = 191427,
+  darkness = 196718,
+  nemesis = 206491,
+  chaos_blades = 211048,
+  netherwalk = 196555,
+  fel_eruption = 211881,
+  felblade = 213241,
+  chaos_nova = 179057
 }
 
 aura_env.charges = {}
