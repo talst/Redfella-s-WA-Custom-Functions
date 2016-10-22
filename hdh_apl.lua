@@ -146,12 +146,12 @@ function ()
         end
 
         if ready('vengeful_retreat')
-          and (talented.prepared or (talented.momentum and buffRemains.momentum < gcdDuration))
+          and (talented.prepared or (talented.momentum and buffRemains.momentum <= 0))
         then rec('vengeful_retreat')
 
         elseif ready('fel_rush')
           and talented.momentum
-          and buffRemains.momentum < gcdDuration
+          and buffRemains.momentum <= 0
           and cooldowns.vengeful_retreat > buffRemains.momentum
         then rec('fel_rush')
 
@@ -172,12 +172,12 @@ function ()
           end
         elseif ready('fel_eruption') and talented.fel_eruption then rec('fel_eruption')
         elseif ready('death_sweep') and buffRemains.metamorphosis > 0 and talented.first_blood then rec('death_sweep')
-        elseif ready('annihilation') and buffRemains.metamorphosis > 0 and (not talented.momentum or (talented.momentum and buffRemains.momentum > gcdDuration) or fury_deficit <= 30) then rec('annihilation')
-        elseif ready('fel_barrage') and talented.fel_barrage and fel_barrage_stacks == 5 and (not talented.momentum or (talented.momentum and buffRemains.momentum > gcdDuration)) then rec('fel_barrage')
+        elseif ready('annihilation') and buffRemains.metamorphosis > 0 and (not talented.momentum or (talented.momentum and buffRemains.momentum > 0) or fury_deficit <= 30) then rec('annihilation')
+        elseif ready('fel_barrage') and talented.fel_barrage and fel_barrage_stacks == 5 and (not talented.momentum or (talented.momentum and buffRemains.momentum > 0)) then rec('fel_barrage')
         elseif ready('throw_glaive') and talented.bloodlet then rec('throw_glaive')
-        elseif ready('eye_beam') and anguish_of_the_deceiver and not buffRemains.metamorphosis > 0 and (not talented.momentum or (talented.momentum and buffRemains.momentum > gcdDuration)) then rec('eye_beam')
+        elseif ready('eye_beam') and anguish_of_the_deceiver and not buffRemains.metamorphosis > 0 and (not talented.momentum or (talented.momentum and buffRemains.momentum > 0)) then rec('eye_beam')
         elseif ready('blade_dance') and talented.first_blood then rec('blade_dance')
-        elseif ready('chaos_strike') and (not talented.momentum or (talented.momentum and buffRemains.momentum > gcdDuration) or fury_deficit <= 30) then rec('chaos_strike')
+        elseif ready('chaos_strike') and (not talented.momentum or (talented.momentum and buffRemains.momentum > 0) or fury_deficit <= 30) then rec('chaos_strike')
         elseif ready('fel_rush') and not talented.momentum then rec('fel_rush')
         elseif ready('felblade') and talented.felblade then rec('felblade')
         else rec('demons_bite')
