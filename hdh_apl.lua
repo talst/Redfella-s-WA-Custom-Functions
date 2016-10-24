@@ -100,7 +100,7 @@ function ()
 
     aura_env.lastRec = aura_env.recommended
     aura_env.recommended = 0
-    aura_env.timeToReady = gcdDuration
+    aura_env.timeToReady = 10
 
     local danger_treshold = aura_env.danger_treshold
     local critical_treshold = aura_env.critical_treshold
@@ -123,12 +123,9 @@ function ()
     ---------------
 
     if not in_combat then
-        if ready( 'fel_rush')
-        then rec ('fel_rush' ) end
-        if ready( 'throw_glaive')
-        then rec ('throw_glaive' ) end
-        if ready( 'demons_bite')
-        then rec ('demons_bite' ) end
+        if ready( 'fel_rush') then rec ('fel_rush')
+        elseif ready( 'throw_glaive') then rec ('throw_glaive' )
+        else rec ('demons_bite' ) end
     else
         -- Defensive cooldowns are toggled on
         if WA_Redfellas_Rot_HDH_Def_CDs then
@@ -183,6 +180,7 @@ function ()
         else rec('demons_bite')
         end
     end
+
 
     ---------------
     -- APL END --

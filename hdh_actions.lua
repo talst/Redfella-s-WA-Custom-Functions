@@ -193,7 +193,7 @@ function aura_env.rec( spell )
 end
 
 function aura_env.ready( spell )
-    local result = aura_env.cooldowns[ spell ] < aura_env.timeToReady
+    local result = aura_env.cooldowns[ spell ] == 0
     return result
 end
 
