@@ -7,6 +7,57 @@ aura_env.critical_treshold = 30
 
 if aura_env.in_combat == nil then aura_env.in_combat = false end
 
+aura_env.enabledToggle = "ALT-SHIFT-T"
+aura_env.offCooldownsToggle = "ALT-SHIFT-R"
+aura_env.defCooldownsToggle = "ALT-SHIFT-E"
+
+WA_Redfellas_Rot_HDH_Enabled = WeakAurasSaved.displays[aura_env.id].hekiliEnabled == nil and true or WeakAurasSaved.displays[aura_env.id].hekiliEnabled
+WA_Redfellas_Rot_HDH_Off_CDs = WeakAurasSaved.displays[aura_env.id].hekiliCooldownsOff == nil and false or WeakAurasSaved.displays[aura_env.id].hekiliCooldownsOff
+WA_Redfellas_Rot_HDH_Def_CDs = WeakAurasSaved.displays[aura_env.id].hekiliCooldownsDef == nil and false or WeakAurasSaved.displays[aura_env.id].hekiliCooldownsDef
+
+aura_env.bindsInitialized = false
+
+aura_env.keyhandler = aura_env.keyhandler or CreateFrame("Button", aura_env.id.."_Keyhandler", UIParent)
+aura_env.keyhandler.parent = aura_env
+aura_env.keyhandler:RegisterForClicks("AnyDown")
+aura_env.keyhandler:SetScript("OnClick", function (self, button, down)
+        if button == "defCooldowns" then
+            WA_Redfellas_Rot_HDH_Def_CDs = not WA_Redfellas_Rot_HDH_Def_CDs
+            print("|cFF00FFFFRedfella's Rotation Helper Defensive Cooldowns: " .. ( WA_Redfellas_Rot_HDH_Def_CDs and "|cFF00FF00ENABLED|r" or "|cFFFF0000DISABLED|r" ) )
+        elseif button == "Enabled" then
+            WA_Redfellas_Rot_HDH_Enabled = not WA_Redfellas_Rot_HDH_Enabled
+            print("|cFF00FFFFRedfella's Rotation Helper: " .. ( WA_Redfellas_Rot_HDH_Enabled and "|cFF00FF00ENABLED|r" or "|cFFFF0000DISABLED|r" ) )
+        elseif button == "offCooldowns" then
+            WA_Redfellas_Rot_HDH_Off_CDs = not WA_Redfellas_Rot_HDH_Off_CDs
+            print("|cFF00FFFFRedfella's Rotation Offensive Helper: " .. ( WA_Redfellas_Rot_HDH_Off_CDs and "|cFF00FF00ENABLED|r" or "|cFFFF0000DISABLED|r" ) )
+        end
+
+        WeakAurasSaved.displays[self.parent.id].hekiliEnabled = WA_Redfellas_Rot_HDH_Enabled
+        WeakAurasSaved.displays[self.parent.id].hekiliCooldownsOff = WA_Redfellas_Rot_HDH_Off_CDs
+        WeakAurasSaved.displays[self.parent.id].hekiliCooldownsDef = WA_Redfellas_Rot_HDH_Def_CDs
+end)
+
+function aura_env.setupBinds()
+
+    if InCombatLockdown() then return end
+
+    ClearOverrideBindings( aura_env.keyhandler )
+    SetOverrideBindingClick( aura_env.keyhandler, true, aura_env.enabledToggle, aura_env.id.."_Keyhandler", "Enabled" )
+    SetOverrideBindingClick( aura_env.keyhandler, true, aura_env.offCooldownsToggle, aura_env.id.."_Keyhandler", "offCooldowns" )
+    SetOverrideBindingClick( aura_env.keyhandler, true, aura_env.defCooldownsToggle, aura_env.id.."_Keyhandler", "defCooldowns" )
+
+    print("|cFF00FFFFRedfella's Rotation Helper|r:  Keybinds are now active.")
+    print("Enable/Disable - |cFFFFD100" .. aura_env.enabledToggle .. "|r.")
+    print("Toggle Defensive Cooldowns - |cFFFFD100" .. aura_env.defCooldownsToggle .. "|r.")
+    print("Toggle Offensive Cooldowns - |cFFFFD100" .. aura_env.offCooldownsToggle .. "|r.")
+    print("You can *carefully* change these keybinds in the " .. aura_env.id .. " WeakAura on the Actions Tab, On Init, Expand Text Editor and see lines 11 to 13." )
+
+    aura_env.bindsInitialized = true
+
+end
+
+aura_env.setupBinds()
+
 aura_env.showCooldownRing = true
 aura_env.invertCooldownRing = false
 aura_env.showRangeHighlight = true
@@ -72,7 +123,8 @@ aura_env.abilities = {
     rockbiter = 193786,
     healing_surge = 188070,
     lightning_bolt = 187837,
-    doom_winds = 204945
+    doom_winds = 204945,
+    auto_attack = 6603
 }
 
 aura_env.chargedAbilities = {
@@ -153,7 +205,7 @@ function aura_env.rec( spell )
 end
 
 function aura_env.ready( spell )
-    local result = aura_env.cooldowns[ spell ] < aura_env.timeToReady
+    local result = aura_env.cooldowns[ spell ] == 0
     return result
 end
 

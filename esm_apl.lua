@@ -100,13 +100,14 @@ function ()
 
     aura_env.lastRec = aura_env.recommended
     aura_env.recommended = 0
-    aura_env.timeToReady = gcdDuration
+    aura_env.timeToReady = 10
 
     local danger_treshold = aura_env.danger_treshold
     local critical_treshold = aura_env.critical_treshold
     local ready = aura_env.ready
     local rec = aura_env.rec
-    local range = IsSpellInRange( abilityNames[17364] )
+    local artifact_weapon = IsEquippedItem(127829)
+    local range = IsSpellInRange( abilityNames[6603] )
 
     local boulderfist_stacks = select(1, GetSpellCharges(201897)) or 0
     local is_akainus_absolute_justice = IsEquippedItem(137084)
@@ -120,8 +121,8 @@ function ()
 
     if not in_combat then
       if ready( 'feral_lunge') and talented.feral_lunge then rec ('feral_lunge')
-        elseif ready( 'spirit_walk') then rec ('spirit_walk')
-        elseif ready( 'wind_rush_totem') and talented.wind_rush_totem then rec ('wind_rush_totem')
+      elseif ready( 'spirit_walk') then rec ('spirit_walk')
+      elseif ready( 'wind_rush_totem') and talented.wind_rush_totem then rec ('wind_rush_totem')
       end
     else
       if ready('boulderfist')
@@ -156,7 +157,9 @@ function ()
           and talented.earthen_spike
         then rec('earthen_spike')
 
-        elseif ready('doom_winds') then rec('doom_winds')
+        elseif ready('doom_winds')
+          and aura_env.cooldowns['doom_winds'] == 0
+        then rec('doom_winds')
 
         elseif ready('ascendance')
           and talented.ascendance
@@ -245,10 +248,19 @@ function ()
 
     if aura_env.timeToReady < 5 then
         if aura_env.showCooldownRing then
-            local start, duration = GetSpellCooldown( aura_env.recommended )
+            local startSpell, durationSpell = GetSpellCooldown( aura_env.recommended )
+            local spellCharges = select(1, GetSpellCharges(aura_env.recommended )) or 0
+            local startGCD, durationGCD = GetSpellCooldown( 61304 )
 
-            if not start or start == 0 then
-                start, duration = GetSpellCooldown( 61304 )
+            local start = 0
+            local duration = 0
+
+            if (startGCD + durationGCD) >= (startSpell + durationSpell) or spellCharges > 0 then
+              start = startGCD
+              duration = durationGCD
+            else
+              start = startSpell
+               duration = durationSpell
             end
 
             WeakAuras.regions[aura_env.id].region.cooldown:SetReverse(aura_env.invertCooldownRing)

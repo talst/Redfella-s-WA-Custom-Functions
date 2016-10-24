@@ -4,21 +4,19 @@ function()
         local default = ""
         if (aura_env.targetCount > 1) then default = string.format("%.0f", aura_env.targetCount) end
 
-        local maelstrom = UnitPower("player")
+        local maelstrom = UnitPower("player", SPELL_POWER_MAELSTROM)
         local boulderfist_charges = GetSpellCharges(201897) or 0
-        local _, _, _, strombringer_count=UnitBuff("player","Stormbringer")
-        local strombringer_charges = stormbringer_count or 0
+        local _, _, _, strombringer_stacks = UnitBuff("player","Stormbringer")
+        local strombringer_charges = strombringer_stacks or 0
+
         -- Charged abilities
         if rec == 201897
-        then return boulderfist_charges .. "/2\n\n\n" .. maelstrom .. "M" end
+        then return boulderfist_charges .. "/2\n\n" .. default .. "\n\n" .. maelstrom .. "M" end
 
         if rec == 17364
-        then return strombringer_charges .. "/2\n\n\n" .. maelstrom .. "M" end
+        then return strombringer_charges .. "/2\n\n".. default .. "\n\n" .. maelstrom .. "M" end
 
-        if rec == 196834
-            or rec == 60103
-        then return maelstrom .. "M\n\n\n\n" end
-        return "\n\n\n" .. default
+        return "      \n\n" .. default .. "\n\n" .. maelstrom .. "M"
     else
         return "ooc\n\n\n\n"
     end
